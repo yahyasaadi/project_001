@@ -1,0 +1,55 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+
+    <!-- Main Content -->
+<div class="container mt-5">
+    <div class="row justify-content-center">
+      <div class="col-md-8">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Instructions for Bursary Application</h2>
+          </div>
+          <div class="card-body">
+            <ol>
+              <li>
+                <strong>Complete the Application Form:</strong> Provide all the required information, including personal details, academic history, financial information, and any supporting documents. Ensure the information is accurate and verifiable.
+              </li>
+              <li>
+                <strong>Submit the Application:</strong> After completing the form, carefully review all the entered details. If everything is accurate, click the "Submit" button to send your application for review. You will receive a confirmation message upon successful submission.
+              </li>
+              <li>
+                <strong>Application Review:</strong> Our team will carefully review your application and verify the provided information. The review process may take some time, depending on the number of applications received. Rest assured, we aim to process applications promptly.
+              </li>
+              <li>
+                <strong>Application Status:</strong> You can log in to your account anytime to check the status of your application. We will provide updates regarding the progress of your request. Please refrain from submitting multiple applications.
+              </li>
+              <li>
+                <strong>Contact Information:</strong> If there are any discrepancies or additional information required during the review process, our team may reach out to you using the contact information provided in your account. Please ensure your contact details are up-to-date.
+              </li>
+              <li>
+                <strong>Notification of Results:</strong> Once the review process is complete, you will receive a notification through your account. Successful applicants will be informed about the award, and further instructions will be provided.
+              </li>
+            </ol>
+          </div>
+          <div class="card-footer">
+            <p>
+              If you encounter any issues or have questions during the application process, feel free to reach out to our support team at <a href="mailto:suleimanzeila@gmail.com">suleimanzeila@gmail.com</a> or call <a href="tel:+254724065493">+254724065493</a>. We are here to assist you and ensure a fair and transparent application process.
+            </p>
+            <p>
+              Thank you for choosing the Dadaab Bursary Web App. We wish you the best of luck in your educational pursuits!
+            </p>
+          </div>
+          <div>
+            <a href="{% url 'personal_details' %}" class='btn btn-primary mb-2'>Proceed</a> OR 
+            <a href="{% url 'personal_details' %}" class='btn btn-primary mb-2'>Check Application Status</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

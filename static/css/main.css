@@ -187,3 +187,6 @@ img {
     text-align: center;
   }
 }
+.personal_details{
+  text-transform: uppercase;
+}
