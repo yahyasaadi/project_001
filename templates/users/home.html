@@ -1,15 +1,39 @@
 {% extends 'users/base.html' %}
-
+{% load static %}
 {% block content %}
-    <h3>Welcome to CDF Dadaab</h3>
-
+<div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">    
     {% if user.is_authenticated %}
     <h3>Hello {{ fname }}!</h3>
     <h4>You're successfully logged in.</h4>
     <button type="submit"><a href="/signout">Sign Out</a></button>
     {% else %}
-
-    <button type="submit"><a href="/signup">Sign Up</a></button>
-    <button type="submit"><a href="/signin">Sign In</a></button>
+        <div>
+            <div id="product-landing">
+                <div id="nav">
+                  <div id="logo" >
+                    <img height='200px' width='400px' src="{% static 'images/overall.jpg' %}">
+    
+                  </div>
+                </div>
+                <div id="hero" style='margin-top:140px;margin-bottom:20px'>
+                  <div id="hero-intro">
+                    <div id="hero-text">
+                      <h1>Welcome to {{ owner.name }} Bursary Web App</h1>
+                      
+                      <p class="mt-1">{{owner.description}}</p>
+                    
+                    </div>
+                   
+                  </div>
+                 
+                </div>
+              
+        <div>
+    <a style='text-decoration:none' class='btn btn-primary text-light text-light' href="/signup">Sign Up</a>
+    <a style='text-decoration:none' class='btn btn-primary text-light text-light' href="/signin">Sign In</a>
     {% endif %}
+    </div>
+</div>
+        </div>
+
 {% endblock %}

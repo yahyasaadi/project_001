@@ -11,10 +11,12 @@ from django.utils.encoding import force_bytes, force_str
 from CDF import settings
 # from django.http import HttpResponse
 from .tokens import generate_token
+from .models import OwnerDetails
 
 # Create your views here.
 def home(request):
-    return render(request, "users/home.html")
+    owner = OwnerDetails.objects.first()
+    return render(request, "users/home.html",{'owner':owner})
 
 def signup(request):
     if request.method == "POST":
@@ -122,13 +124,18 @@ def signin(request):
         if user is not None:
             login(request, user)
             fname = user.first_name
+
+            if user.is_staff:
+                fname = user.first_name
+
+                return render(request,'users/staff_page.html',{"fname":fname})
             # messages.success(request, "Logged In Sucessfully!!")
             return render(request, "users/home.html",{"fname":fname})
         else:
             messages.error(request, "Invalid username or password.")
             return redirect('signin')
-        
-    return render(request, "users/signin.html")
+    owner = OwnerDetails.objects.first()  
+    return render(request, "users/signin.html",{'owner':owner})
 
 
 def signout(request):
