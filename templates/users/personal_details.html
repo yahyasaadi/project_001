@@ -1,0 +1,142 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+<style>
+.personal_details{
+  text-transform: uppercase;
+}
+</style>
+
+<div class="personal_details">
+<div class="container mt-5">
+    <form method='post' action='{% url "personal_details" %}'>
+      {% csrf_token %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="jumbotron">
+                <div class="form-group">
+                    <label for="exampleInputEmail1">Name of the Student</label>
+                    <input required type="text" class="form-control" name='fullname'  placeholder="Enter Full name">
+                    
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">National ID/Passport Number</label>
+                    <input required type="text" class="form-control" name="id_or_passport_no"  placeholder="Enter your National ID/Passport Number">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputPassword1">Gender</label><br>
+                    <input required type="radio"  name='gender' value='male'> Male<br>
+                    <input required type="radio"  name='gender' value='female'> Female <br>
+                  </div>
+
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Date of Birth</label>
+                    <input required type="date" class="form-control" name='date_of_birth'>
+                    
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Mobile / Telephone Number</label>
+                    <input required type="text" class="form-control" name="mobile_no"  placeholder="Mobile / Telephone Number">
+                  </div>
+                  <div class="form-group mt-2">
+                    <h2>Polling Station</h2>
+                    <label for="exampleInputEmail1">Name of your Polling Station</label>
+                    <input required type="text" class="form-control" name="name_polling_station"  placeholder="Name of your Polling Station">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Location</label>
+                    <input required type="text" class="form-control" name="location"  placeholder="Location">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Ward</label>
+                    <input required type="text" class="form-control" name="ward"  placeholder="Ward">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1"><br><br>Amount Applied For</label>
+                    <input required type="text" class="form-control" name="ammount_requesting"  placeholder="Amount Applied For (Kshs.)">
+                  </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="jumbotron">
+                <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Name of Institution</label>
+                    <input required type="text" class="form-control" name="institution"  placeholder="Enter the Name of Institution">
+                    
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Registration / Admission name</label>
+                    <input required type="text" class="form-control" name="admin_no"  placeholder="Enter Your Registration / Admission Number">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Campus or Branch</label>
+                    <input required type="text" class="form-control" name="campus_or_branch"  placeholder="Enter your Campus or Branch">
+                  </div>
+<!-- 
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1"></label>
+                    <input required type="text" class="form-control" name=""  placeholder="">
+                  </div>
+                   -->
+                   <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Your Faculty</label>
+                    <input required type="text" class="form-control" name="faculty"  placeholder="Enter the Name of your Faculty">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Course of Study</label>
+                    <input required type="text" class="form-control" name="course"  placeholder="Course of Study">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Mode of Study</label><br>
+                    <input required type="radio" name="mode_of_study" value="regular"> Regular <br>
+                    <input required type="radio" name="mode_of_study" value="parallel"> Parallel <br>
+                    <input required type="radio" name="mode_of_study" value="boarding"> Boarding<br>
+                    <input required type="radio" name="mode_of_study" value="day"> Day<br>
+                    <!-- <input required type="radio" class="form-control" name="">
+                    <input required type="radio" class="form-control" name=""> -->
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Class / Grade / Year of Study</label>
+                    <input required type="text" class="form-control" name="year_of_study"  placeholder="Class / Grade / Year of Study">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Course Duration</label>
+                    <input required type="text" class="form-control" name="course_duration"  placeholder="Course Duration">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Year of Completion</label>
+                    <input required type="text" class="form-control" name="year_of_completion"  placeholder="Year of Completion">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">INSTITUTION'S POSTAL ADDRESS</label>
+                    <input required type="text" class="form-control" name="institution_postal_address"  placeholder="INSTITUTION'S POSTAL ADDRESS">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">INSTITUTION'S TELEPHONE NUMBER</label>
+                    <input required type="text" class="form-control" name="institution_telephone_no"  placeholder="INSTITUTION'S TELEPHONE NUMBER">
+                  </div>
+            </div>
+        </div>
+    </div>
+    <!-- <div class="row">
+        <div class="col-md-6">
+            <div class="jumbotron">
+                <h1>Row 2</h1>
+                <p>This is the content for the second row.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="jumbotron">
+                <h1>Row 2</h1>
+                <p>This is the content for the second row.</p>
+            </div>
+        </div>
+    </div> -->
+    <button type="submit" class="btn btn-outline-info btn-block">Save and Proceed</button>
+</div>
+</div>
+
+{% endblock %}
