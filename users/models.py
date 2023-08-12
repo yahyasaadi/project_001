@@ -117,3 +117,52 @@ class Sibling(models.Model):
 
     def __str__(self):
         return self.user.first_name
+    
+
+# models
+class AdditionalInformation(models.Model):
+    reason = models.TextField()
+    prev_bursary = models.TextField()
+    org_bursary = models.TextField()
+    disability = models.TextField()
+    chronic_illness = models.TextField()
+    fam_disability = models.TextField()
+    fam_chronic_illness = models.TextField()
+    fund_secondary = models.TextField(null=True)
+    fund_college = models.TextField(null=True)
+    fund_uni = models.TextField(null=True)
+    other_fund_secondary = models.TextField(null=True)
+    other_fund_college = models.TextField(null=True)
+    other_fund_uni = models.TextField(null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def _str_(self):
+        return self.user.first_name
+
+
+PERFORMANCE_LEVELS = [
+    ('excellent', 'Excellent'),
+    ('very_good', 'Very Good'),
+    ('good', 'Good'),
+    ('fair', 'Fair'),
+    ('poor', 'Poor')
+]
+class AcademicPerformance(models.Model):
+    average_performance = models.CharField(max_length=50, choices=PERFORMANCE_LEVELS)
+    sent_away = models.TextField()
+    no_of_weeks = models.CharField(max_length=50)
+    annual_fees = models.CharField(max_length=50)
+    last_sem_fees = models.CharField(max_length=50)
+    current_sem_fees = models.CharField(max_length=50)
+    next_sem_fees = models.CharField(max_length=50)
+    helb_loan = models.CharField(max_length=50, null=True)
+    ref_one_name = models.CharField(max_length=100)
+    ref_one_address = models.CharField(max_length=255)
+    ref_one_number = models.CharField(max_length=40)
+    ref_two_name = models.CharField(max_length=100)
+    ref_two_address = models.CharField(max_length=255)
+    ref_two_number = models.CharField(max_length=40)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def _str_(self):
+        return self.user.first_name
