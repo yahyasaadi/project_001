@@ -116,4 +116,4 @@ class Sibling(models.Model):
     fees = models.CharField(max_length=200)
 
     def __str__(self):
-        return self.user.first_name
+        return self.user.first_name +' '+ self.user.last_name
