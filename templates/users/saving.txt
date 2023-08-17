@@ -1,3 +1,108 @@
+<div class="personal_details">
+    <div class="container mt-5">
+        <h1>Review</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="jumbotron">
+                    <h5>i. Personal, Institutional and Other Details</h5>
+                    <p class="mt-5">Name of Student (as it appears in ID/official documents):<u> <strong>{{personal_details.fullname}}</strong></u> </p>
+                    <p class="mt-2">GENDER: <u><strong>{{personal_details.gender}}</strong></u></p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <P>DATE OF BIRTH <u><strong>{{personal_details.date_of_birth}}</strong></u></P>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mt-2">ID. NO./PASSPORT NO <u><strong>{{personal_details.id_or_passport_no}}</strong></u></p>
+                        </div>
+                    </div>
+                    <p class="mt-2">NAME OF SCHOOL /COLLEGE / UNIVERSITY: <u><strong>{{personal_details.institution}}</strong></u></p>
+                    <p class="mt-2">ADMISSION/REGISTRATION NUMBER <u><strong>{{personal_details.admin_no}}</strong></u></p>
+                    <p class="mt-2">CAMPUS/ BRANCH: (for tertiary institution and University) <u><strong>{{personal_details.campus_or_branch}}</strong></u></p>
+                    <p class="mt-2">FACULTY/ DEPARTMENT: (for tertiary institution and University) <u><strong>{{personal_details.faculty}}</strong></u></p>
+                    <p class="mt-2">COURSE OF STUDY: (for tertiary institution and University) <u><strong>{{personal_details.course}}</strong></u></p>
+                    <p class="mt-2">MODE OF STUDY: <u><strong>{{personal_details.mode_of_study}}</strong></u></p>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <P>CLASS / GRADE/ YEAR OF STUDY:  <u><strong>{{personal_details.year_of_study}}</strong></u></P>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mt-2">COURSE DURATION: <u><strong>{{personal_details.course_duration}}</strong></u></p>
+                        </div>
+                    </div>
+
+                    <p class="mt-2">EXPECTED YEAR AND MONTH OF COMPLETION: <u><strong>{{personal_details.year_of_completion}}</strong></u></p>
+                    <p class="mt-2">MOBILE /TELEPHONE NUMBER: <u><strong>{{personal_details.mobile_no}}</strong></u></p>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <P>POLLING STATION:<u><strong>{{personal_details.name_polling_station}}</strong></u></P>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mt-2">WARD: <u><strong>{{personal_details.ward}}</strong></u></p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <P>LOCATION:<u><strong>{{personal_details.location}}</strong></u></P>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mt-2">SUB LOCATION: <u><strong>{{personal_details.location}}</strong></u></p>
+                        </div>
+                    </div>
+
+                    <p class="mt-2">PHYSICAL ADDRESS: <u><strong>{{personal_details.institution_postal_address}}</strong></u></p>
+                    <p class="mt-2">PERMANENT ADDRESS: <u><strong>{{personal_details.institution_postal_address}}</strong></u></p>
+
+                    <p class="mt-2">INSTITUTION'S POSTAL ADDRESS: <u><strong>{{personal_details.institution_postal_address}}</strong></u></p>
+                    <p class="mt-2">INSTITUTION'S TELEPHONE NUMBER: <u><strong>{{personal_details.institution_telephone_no}}</strong></u></p>
+
+                    <p class="mt-2">AMOUNT APPLIED FOR (Kshs.): <u><strong>{{personal_details.ammount_requesting}}</strong></u></p>
+
+                    
+                </div>
+            </div>
+
+
+
+            <div class="col-md-6">
+                <div class="jumbotron">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 from django.db import models
 from django.contrib.auth.models import User
 

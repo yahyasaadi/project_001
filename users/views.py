@@ -13,6 +13,9 @@ from CDF import settings
 # from django.http import HttpResponse
 from .tokens import generate_token
 from .models import OwnerDetails, PersonalDetails, FamilyBackaground, Sibling, AdditionalInformation, AcademicPerformance
+from fpdf import FPDF
+from datetime import datetime
+
 
 # Create your views here.
 def home(request):
@@ -193,7 +196,7 @@ def family_background(request):
 ,
             )
             saving_sibling.save()
-        return HttpResponse('Saved')
+        return redirect('additional_info')
     else:
         
         owner = OwnerDetails.objects.first() 
@@ -222,7 +225,10 @@ def personal_details(request):
         name_polling_station = request.POST['name_polling_station']
 
         location = request.POST['location']
+        sub_location = request.POST['sub_location']
         ward = request.POST['ward']
+        physical_address = request.POST['physical_address']
+        permanent_address = request.POST['permanent_address']
         institution_postal_address = request.POST['institution_postal_address']
         institution_telephone_no = request.POST['institution_telephone_no']
         ammount_requesting = request.POST['ammount_requesting']
@@ -245,14 +251,17 @@ def personal_details(request):
             mobile_no=mobile_no,
             name_polling_station=name_polling_station,
             location=location,
+            sub_location=sub_location,
             ward=ward,
+            physical_address=physical_address,
+            permanent_address=permanent_address,
             institution_postal_address= institution_postal_address,
             institution_telephone_no=institution_telephone_no,
             ammount_requesting=ammount_requesting
         )
         saved = saving_personal_details.save()
 
-        return redirect('fa')
+        return redirect('family_background')
 
     else:
         owner = OwnerDetails.objects.first() 
@@ -289,6 +298,7 @@ def signout(request):
 
 
 # the views
+@login_required
 def additional_info(request):
     if request.method == "POST":
         reason = request.POST['reason']
@@ -304,6 +314,26 @@ def additional_info(request):
         other_fund_secondary = request.POST['other_fund_secondary']
         other_fund_college = request.POST['other_fund_college']
         other_fund_uni = request.POST['other_fund_uni']
+
+        if prev_bursary == '':
+            prev_bursary = "Not Received"
+
+        if org_bursary == '':
+            org_bursary = "Not Received"
+
+        if disability == '':
+            disability = "No"
+
+        if chronic_illness == '':
+            chronic_illness = "No"
+
+        if fam_disability == '':
+            fam_disability = "No"
+
+        if fam_chronic_illness == '':
+            fam_chronic_illness = "No"
+
+        
 
         additional_info = AdditionalInformation(
             user=request.user,
@@ -322,12 +352,12 @@ def additional_info(request):
             other_fund_uni = other_fund_uni
         )
         additional_info.save()
-        return HttpResponse('Saved')
+        return redirect("academic_performance")
     else:
         owner = OwnerDetails.objects.first() 
         return render(request, 'users/additional_info.html',{"owner":owner})
 
-
+@login_required
 def academic_performance(request):
     if request.method == "POST":
         average_performance = request.POST['average_performance']
@@ -344,6 +374,13 @@ def academic_performance(request):
         ref_two_name = request.POST['ref_two_name']
         ref_two_address = request.POST['ref_two_address']
         ref_two_number = request.POST['ref_two_number']
+
+        if sent_away == '':
+            sent_away = 'I have not been Sent Away.'
+
+        if no_of_weeks == '':
+            no_of_weeks = 0
+
 
         academic_performance = AcademicPerformance(
             user=request.user,
@@ -364,7 +401,314 @@ def academic_performance(request):
         )
 
         academic_performance.save()
-        return HttpResponse('Saved')
+        return redirect('review')
     else:
         owner = OwnerDetails.objects.first() 
         return render(request, 'users/academic_performance.html',{"owner":owner})
+    
+
+
+
+
+
+@login_required
+def review(request):
+    owner = OwnerDetails.objects.first()
+    personal_details = PersonalDetails.objects.get(user = request.user)
+    family_background = FamilyBackaground.objects.get(user = request.user)
+    siblings = Sibling.objects.filter(user = request.user)
+    additional_info = AdditionalInformation.objects.get(user = request.user)
+    academic_performance = AcademicPerformance.objects.get(user = request.user)
+    context = {
+        'owner':owner,
+        'personal_details':personal_details,
+        'family_background':family_background,
+        'siblings':siblings,
+        'additional_info':additional_info,
+        'academic_performance':academic_performance
+        }
+    return render(request, 'users/review.html',context)
+
+
+
+@login_required
+def generate_pdf(request):
+    owner = OwnerDetails.objects.first()
+    personal_details = PersonalDetails.objects.get(user = request.user)
+    family_background = FamilyBackaground.objects.get(user = request.user)
+    siblings = Sibling.objects.filter(user = request.user)
+    additional_info = AdditionalInformation.objects.get(user = request.user)
+    academic_performance = AcademicPerformance.objects.get(user = request.user)
+
+
+
+    response = HttpResponse(content_type='application/pdf')
+    
+    user_full_name = request.user.get_full_name()  # Get the user's full name
+    current_date= datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # Get the current date in YYYY-MM-DD format
+    current_date1= datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Get the current date in YYYY-MM-DD format
+    
+    filename = f"{user_full_name}_{current_date}.pdf"  # Combine user's name and date
+    
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    class PDF(FPDF):
+        def header(self):
+            self.set_font('Times', 'B', 12)
+            self.cell(0, 10, '123456778/23', 0, 1, 'R')
+            self.cell(0, 5, f'{current_date1}', 0, 1, 'L')
+        
+        def footer(self):
+            self.set_y(-15)
+            self.set_font('Times', 'I', 8)
+            self.cell(0, 10, 'Generated by: ' + request.user.get_full_name(), 0, 0, 'L')
+
+    pdf = PDF()
+    pdf.add_page()
+    
+
+      # Add some vertical spacing
+    
+    # pdf.image('static/images/overall.jpg', x=10, y=pdf.get_y(), w=10)
+    image_path = 'static/images/overall.jpg'
+    original_img_width = 50  # Adjust this to the original width of your image
+    img_width = original_img_width / 2  # Half of the original width
+    pdf.image(image_path, x=pdf.w / 2 - img_width / 2, y=pdf.get_y(), w=img_width)
+    pdf.ln(20)
+    pdf.set_font("Times", 'B', 16)
+    pdf.cell(0, 10, f"{owner.name} Bursary", ln=True, align='C')
+    pdf.set_font("Times", 'B', 8)
+    pdf.cell(0, 10, f"P.O. BOX 732-90200, {owner.name}. TEL: 0734-909- 303 & 0726242177. Email.cdfdadaab@ngcdf.go.ke", ln=True, align='C')
+    
+    pdf.ln(4)
+    pdf.set_font("Times", 'B', 16)
+    pdf.cell(0, 10, "PART A: INSTRUCTION", ln=True, align='L')
+    
+    content = (
+        "1. The constituency bursary scheme has limited available funds and is meant to support only the very needy cases.\n"
+        "   Persons who are able are not expected to apply.\n"
+        "2. It is an offense to give false information and once discovered will lead to disqualification.\n"
+        "3. Total and Partial orphans MUST present supporting documents from the area chief or Religious Leader\n"
+        "4. All forms shall be returned at the {0} NG-CDF offices not later than 7th April 2023. NB:Any form\n"
+        "returned after the stipulated period shall not be accepted whatsoever.\n"
+        "5. Successful applicants will have the awarded bursary paid directly to university or college.\n"
+        "6. All information provided will be verified with the relevant Authority(s)."
+    ).format(owner.name)
+    
+    pdf.set_font("Times", size=10)
+    pdf.multi_cell(0, 5, content)
+    # response.write(pdf.output(dest='S').encode('latin1'))
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 16)
+    pdf.cell(0, 10, "PART B: TO BE FILLED BY THE APPLICANT / PARENT / GUARDIAN", ln=True, align='L')
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "i. Personal, Institutional and Other Details", ln=True, align='L')
+    pdf.set_font("Times",size=12)
+    pdf.multi_cell(0, 6, f"Name of Student (as it appears in ID/official documents):.....{personal_details.fullname}.....", align='L')
+    pdf.multi_cell(0, 6, f"GENDER:.....{personal_details.gender}.....", align='L')
+   # Row layout for "DATE OF BIRTH" and "ID number"
+    pdf.cell(0, 6, f"DATE OF BIRTH:.....{personal_details.date_of_birth}.....", 0, 0)  # Add "DATE OF BIRTH" in the first cell of the row
+    pdf.cell(-100) 
+    pdf.cell(0, 6, f"ID number:.....{personal_details.id_or_passport_no}.....", 0, 1)  # Add "ID number" in the second cell of the row
+    
+    pdf.multi_cell(0, 6, f"NAME OF SCHOOL /COLLEGE / UNIVERSITY:.....{personal_details.institution}.....", align='L')
+    pdf.multi_cell(0, 6, f"ADMISSION/REGISTRATION NUMBER:.....{personal_details.admin_no}.....", align='L')
+    pdf.multi_cell(0, 6, f"CAMPUS/ BRANCH: (for tertiary institution and University).....{personal_details.campus_or_branch}.....", align='L')
+    pdf.multi_cell(0, 6, f"FACULTY/ DEPARTMENT: (for tertiary institution and University).....{personal_details.faculty}.....", align='L')
+    pdf.multi_cell(0, 6, f"COURSE OF STUDY: (for tertiary institution and University.....{personal_details.course}.....", align='L')
+    pdf.multi_cell(0, 6, f"MODE OF STUDY:.....{personal_details.mode_of_study}.....", align='L')
+    pdf.cell(0, 6, f"CLASS/GRADE/YEAR OF STUDY:.....{personal_details.year_of_study}.....", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, f"COURSE DURATION:.....{personal_details.course_duration}.....", 0, 1)
+    pdf.multi_cell(0, 6, f"EXPECTED YEAR AND MONTH OF COMPLETION:.....{personal_details.year_of_completion}.....", align='L')
+    pdf.multi_cell(0, 6, f"MOBILE/TELEPHONE NUMBER:.....{personal_details.mobile_no}.....", align='L')
+    pdf.cell(0, 6, f"POLLING STATION:.....{personal_details.name_polling_station}.....", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, f"WARD:.....{personal_details.ward}.....", 0, 1)
+    pdf.cell(0, 6, f"LOCATION:.....{personal_details.location}.....", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, f"SUB LOCATION:.....{personal_details.sub_location}.....", 0, 1)
+    pdf.multi_cell(0, 6, f"PHYSICAL ADDRESS:.....{personal_details.physical_address}.....", align='L')
+    pdf.multi_cell(0, 6, f"PERMANENT ADDRESS:.....{personal_details.permanent_address}.....", align='L')
+    pdf.multi_cell(0, 6, f"INSTITUTION'S POSTAL ADDRESS:.....{personal_details.institution_postal_address}.....", align='L')
+    pdf.multi_cell(0, 6, f"INSTITUTION'S TELEPHONE NUMBER:.....{personal_details.institution_telephone_no}.....", align='L')
+    pdf.multi_cell(0, 8, f"AMOUNT APPLIED FOR (Kshs):.....{personal_details.ammount_requesting}.....", align='L')
+    pdf.set_font("Times", 'B', 12)
+    pdf.cell(0, 8, "(Attach support documents including letter of admission, fees structure and recommendations)", ln=True, align='L')
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "ii. FAMILY BACKGROUND", ln=True, align='L')
+    pdf.set_font("Times",size=12)
+     # Replace underscores with spaces and convert to title case
+    family_status_text = " ".join(word.title() for word in family_background.family_status.split("_"))
+    
+    # Print the modified text
+    pdf.multi_cell(0, 6, f"Kindly indicate your family status:.....{family_status_text}.....", align='L')
+    pdf.multi_cell(0, 6, f"Number of siblings ( alive):.....{family_background.number_siblings}.....", align='L')
+    pdf.multi_cell(0, 6, f"Estimated Family income:.....{family_background.family_income}.....(annually Kshs.)", align='L')
+    pdf.multi_cell(0, 6, f"Estimated Family expense:.....{family_background.family_expense}.....(annually Kshs.)", align='L')
+    pdf.multi_cell(0, 8, "Attach support documents eg- death certificate / a verification letter from area chief/sub chief", align='L')
+    pdf.ln(4)
+    pdf.multi_cell(0, 6, f"a) Father", align='L')
+    pdf.cell(0, 6, f"Full Name:.....{family_background.father_name}.....", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, f"Address:.....{family_background.father_address}.....", 0, 1)
+    pdf.cell(0, 6, f"Telephone Number:.....{family_background.father_mobile_no}.....", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, f"Occupation:.....{family_background.father_occupation}.....", 0, 1)
+    father_employment = " ".join(word.title() for word in family_background.father_type_of_employment.split("_"))
+    pdf.multi_cell(0, 6, f"Type of employment:.....{father_employment}.....", align='L')
+    pdf.multi_cell(0, 6, f"Main source of income:.....{family_background.father_main_source_of_income}.....", align='L')
+    pdf.ln(4)
+    pdf.multi_cell(0, 6, f"b) Mother", align='L')
+    pdf.cell(0, 6, f"Full Name:.....{family_background.mother_full_name}.....", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, f"Address:.....{family_background.mother_address}.....", 0, 1)
+    pdf.cell(0, 6, f"Telephone Number:.....{family_background.mother_telephone_number}.....", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, f"Occupation:.....{family_background.mother_occupation}.....", 0, 1)
+    mother_employment = " ".join(word.title() for word in family_background.mother_type_of_employment.split("_"))
+    pdf.multi_cell(0, 6, f"Type of employment:.....{mother_employment}.....", align='L')
+    pdf.multi_cell(0, 6, f"Main source of income:.....{family_background.mother_main_source_of_income}.....", align='L')
+    pdf.ln(4)
+    pdf.multi_cell(0, 6, f"c) Guardian", align='L')
+    pdf.cell(0, 6, f"Full Name:.....{family_background.guardian_full_name}.....", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, f"Address:.....{family_background.guardian_address}.....", 0, 1)
+    pdf.cell(0, 6, f"Telephone Number:.....{family_background.guardian_telephone_number}.....", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, f"Occupation:.....{family_background.guardian_occupation}.....", 0, 1)
+    guardian_employment = " ".join(word.title() for word in family_background.guardian_type_of_employment.split("_"))
+    pdf.multi_cell(0, 6, f"Type of employment:.....{guardian_employment}.....", align='L')
+    pdf.multi_cell(0, 6, f"Main source of income:.....{family_background.guardian_main_source_of_income}.....", align='L')
+    
+    # SIBLINGS
+    # Split data into two columns
+    pdf.ln(4)
+    pdf.cell(0, 6, "d) Provide the names of siblings in school/ college/ university this year in the table below ", 0, 1)
+
+    data = (
+        "S/No., Name, Institution, Annual fees payable (Kshs.)\n"
+        # ... (remaining data)
+    )
+    i=1
+    for sibling in siblings:
+        first_two_names = " ".join(sibling.sibling_name.split()[:2])
+        data += f"{i}, {first_two_names}, {sibling.institution}, {sibling.fees}\n"
+        i+=1
+    
+
+    column_width = pdf.w / 2 - 15  # Width of each column
+    lines = data.split('\n')  # Split the data into lines
+    
+    # Start position for the first column
+    pdf.set_xy(10, pdf.get_y())
+    
+    for line in lines:
+        pdf.cell(1)
+        items = line.split(', ')
+        for item in items:
+            pdf.cell(48.8, 5, item, 1)
+        pdf.ln()  # Move to the next row
+    
+
+    #additional Info
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "ii. APPLICANT'S ADDITIONAL INFORMATION", ln=True, align='L')
+    pdf.set_font("Times",size=12)
+    pdf.multi_cell(0, 6, f"a). Why are you applying for bursary assistance?.....{additional_info.reason}.....", align='L')
+    pdf.multi_cell(0, 6, f"b). Have you received any financial support / bursaries from NG-CDF in the past?.....{additional_info.prev_bursary}.....", align='L')
+    pdf.multi_cell(0, 6, f"c). Have you received any financial support bursaries from other organizations in the past?.....{additional_info.org_bursary}.....", align='L')
+    pdf.multi_cell(0, 6, f"d). Do you suffer from any physical impairment (disability) ?.....{additional_info.disability}.....", align='L')
+    pdf.multi_cell(0, 6, f"e). Do you suffer from any chronic illness?.....{additional_info.chronic_illness}.....", align='L')
+    pdf.multi_cell(0, 6, f"f). Do your parents/guardians have any form of disability?.....{additional_info.fam_disability}.....", align='L')
+    pdf.multi_cell(0, 6, f"g). Do your parents/guardians suffer from any chronic illness?.....{additional_info.fam_chronic_illness}.....", align='L')
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "EDUCATION FUNDING HISTORY", ln=True, align='L')
+    pdf.set_font("Times", size=12)
+
+    pdf.cell(0, 7, "i). State the main source of funding for your education in the past as below:", ln=True, align='L')
+    pdf.multi_cell(0, 6, f"In secondary school.....{additional_info.fund_secondary}.....", align='L')
+    pdf.multi_cell(0, 6, f"In college.....{additional_info.fund_college}.....", align='L')
+    pdf.multi_cell(0, 6, f"In the university.....{additional_info.fund_uni}.....", align='L')
+
+    pdf.cell(0, 7, "ii). Indicate other sources of funding if any:", ln=True, align='L')
+    pdf.multi_cell(0, 6, f"In secondary school.....{additional_info.other_fund_secondary}.....", align='L')
+    pdf.multi_cell(0, 6, f"In college.....{additional_info.other_fund_college}.....", align='L')
+    pdf.multi_cell(0, 6, f"In the university.....{additional_info.other_fund_uni}.....", align='L')
+
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "APPLICANT'S ACADEMIC PERFORMANCE", ln=True, align='L')
+    pdf.set_font("Times", size=12)
+
+    academic_per = " ".join(word.title() for word in academic_performance.average_performance.split("_"))
+    pdf.multi_cell(0, 6, f"a). What is your average academic performance?.....{academic_per}.....", align='L')
+    pdf.multi_cell(0, 6, f"b). Have you been sent away from school?.....{academic_performance.sent_away}.....", align='L')
+    pdf.multi_cell(0, 6, f"c). Specify the number of weeks you stayed away from school.....{academic_performance.no_of_weeks}.....", align='L')
+    pdf.multi_cell(0, 6, f"d). Annual fees as per fees structure Kshs.....{academic_performance.annual_fees}.....", align='L')
+    pdf.multi_cell(0, 6, f"e). Last semester's/Term's fee balance Kshs.....{academic_performance.last_sem_fees}.....", align='L')
+    pdf.multi_cell(0, 6, f"f). This semester's/Term's fee balance Kshs.....{academic_performance.current_sem_fees}.....", align='L')
+    pdf.multi_cell(0, 6, f"g). Next semester's/Term's fee balance Kshs.....{academic_performance.next_sem_fees}.....", align='L')
+    pdf.multi_cell(0, 6, f"h). Loan from HELB ( where applicable).....{academic_performance.helb_loan}.....", align='L')
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "REFEREES", ln=True, align='L')
+    pdf.set_font("Times", size=12)
+    pdf.multi_cell(0, 7, "The student/parent/guardian should provide the names and telephone contacts of at least two referees who \nknow the family well", align='L')
+    pdf.ln(4)
+    pdf.multi_cell(0, 6, f"1). Name.....{academic_performance.ref_one_name}.....", align='L')
+    pdf.multi_cell(0, 6, f"    Address.....{academic_performance.ref_one_address}.....", align='L')
+    pdf.multi_cell(0, 6, f"    Telephone no.....{academic_performance.ref_one_number}.....", align='L')
+    pdf.ln(4)
+
+    pdf.multi_cell(0, 6, f"2). Name.....{academic_performance.ref_two_name}.....", align='L')
+    pdf.multi_cell(0, 6, f"    Address.....{academic_performance.ref_two_address}.....", align='L')
+    pdf.multi_cell(0, 6, f"    Telephone no.....{academic_performance.ref_two_number}.....", align='L')
+    pdf.ln(34)
+
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "PART C: DECLARATIONS", ln=True, align='L')
+    pdf.cell(0, 10, "(1) STUDENT'S DECLARATION", ln=True, align='L')
+    pdf.set_font("Times", size=12)
+    pdf.cell(0, 10, "I declare that I have read this form/ this form has been read to me and I hereby confirm that the", ln=True, align='L')
+    pdf.cell(0, 10, "information given herein is true to the best of my knowledge and belief; I understand that any false", ln=True, align='L')
+    pdf.cell(0, 10, "information provided shall lead to my automatic disqualification by the committee.", ln=True, align='L')
+
+    pdf.cell(0, 6, "Student's Signature:........................................", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, "Date:.......................", 0, 1)
+    
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "(2) PARENT'S / GUARDIAN'S DECLARATION", ln=True, align='L')
+    pdf.set_font("Times", size=12)
+    pdf.cell(0, 10, "I declare that I have read this form/ this form has been read to me and I hereby confirm that the ", ln=True, align='L')
+    pdf.cell(0, 10, "information given herein is true to the best of my knowledge and belief; I understand that any false", ln=True, align='L')
+    pdf.cell(0, 10, "information provided shall lead to disqualification of the student by the committee.", ln=True, align='L')
+
+    pdf.cell(0, 6, "Parent's /Guardian's Name:............................................  Date.....................", 0, 0)
+    pdf.cell(-50)
+    pdf.cell(0, 6, "Sign:.......................", 0, 1)
+    
+
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "PART D: VERIFICATIONS", ln=True, align='L')
+    pdf.set_font("Times", size=12)
+    pdf.cell(0, 6, "Verified by:", ln=True, align='L')
+    pdf.cell(0, 6, "a). Religious leader :",ln=True, align='L')
+    pdf.cell(0, 6, "Name of religion:...................................................................................",ln=True, align='L')
+    pdf.cell(0, 6, "Type of religion: Christian ( ) Muslim ( ) Hindu ( ) Any other ( ) (tick appropriately)",ln=True, align='L')
+    pdf.cell(0, 6, "If other specify....................................................................................",ln=True, align='L')
+    pdf.ln(2)
+    pdf.multi_cell(0, 6, "Comment on the status of the family / parents of the applicant.......................................................\n.......................................................................................................................................................\n.................", 0, 0)
+
+
+    response.write(pdf.output(dest='S').encode('latin1'))
+    return response
+
+

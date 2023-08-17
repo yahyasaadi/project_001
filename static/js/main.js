@@ -33,3 +33,15 @@ $(document).ready(function() {
         addRow();
     });
 });
+
+
+function toggleTextarea() {
+    var selectValue = document.getElementById("receivedCDF").value;
+    var textarea = document.getElementById("additionalInfo");
+
+    if (selectValue === "yes") {
+        textarea.style.display = "block";
+    } else {
+        textarea.style.display = "none";
+    }
+}

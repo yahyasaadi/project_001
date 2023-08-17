@@ -1,0 +1,202 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+<style>
+    p {
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-family: 'Times New Roman', Times, serif;
+    line-height: 16px;
+}
+</style>
+<div class="container py-2 px-2">
+    <h1 class="text-center">Review</h1> 
+<div class="row ">
+    <div class="col-md-6">
+        <div class="jumbotron">
+            <h4><u>PART A: TO BE FILLED BY THE APPLICANT / PARENT / GUARDIAN</u> </h4>
+            <p>Name of Student (as it appears in ID/official documents): <u><strong>{{personal_details.fullname}}</strong></u></p>
+            <p>GENDER: <u><strong>{{personal_details.gender}}</strong></u></p>
+            <P>DATE OF BIRTH <u><strong>{{personal_details.date_of_birth}}</strong></u></P>
+            <p>ID. NO./PASSPORT NO <u><strong>{{personal_details.id_or_passport_no}}</strong></u></p>
+            <p>NAME OF SCHOOL /COLLEGE / UNIVERSITY: <u><strong>{{personal_details.institution}}</strong></u></p> 
+            <p>ADMISSION/REGISTRATION NUMBER: <u><strong>{{personal_details.admin_no}}</strong></u></p>
+            <p>CAMPUS/ BRANCH: (for tertiary institution and University) <u><strong>{{personal_details.campus_or_branch}}</strong></u></p>
+            <p>FACULTY/ DEPARTMENT: (for tertiary institution and University) <u><strong>{{personal_details.faculty}}</strong></u></p>
+            <p>COURSE OF STUDY: (for tertiary institution and University) <u><strong>{{personal_details.course}}</strong></u></p>
+            <p>MODE OF STUDY: <u><strong>{{personal_details.mode_of_study}}</strong></u></p>
+            <P>GRADE/YEAR OF STUDY:<u><strong>{{personal_details.year_of_study}}</strong></u></P>
+            <p>COURSE DURATION: <u><strong>{{personal_details.course_duration}}</strong></u></p>
+            <p>EXPECTED YEAR AND MONTH OF COMPLETION: <u><strong>{{personal_details.year_of_completion}}</strong></u></p>
+            <p>MOBILE /TELEPHONE NUMBER: <u><strong>{{personal_details.mobile_no}}</strong></u></p>
+            <p>POLLING STATION: <u><strong>{{personal_details.name_polling_station}}</strong></u></p>
+            <p>WARD: <u><strong>{{personal_details.ward}}</strong></u></p>
+            <p>LOCATION: <u><strong>{{personal_details.location}}</strong></u></p>  
+            <p>SUB LOCATION: <u><strong>{{personal_details.sub_location}}</strong></u></p>
+            <p>PHYSICAL ADDRESS: <u><strong>{{personal_details.physical_address}}</strong></u></p>
+            <p>PERMANENT ADDRESS: <u><strong>{{personal_details.permanent_address}}</strong></u></p>
+            <p>INSTITUTION'S POSTAL ADDRESS: <u><strong>{{personal_details.institution_postal_address}}</strong></u></p>
+            <p>INSTITUTION'S TELEPHONE NUMBER: <u><strong>{{personal_details.institution_telephone_no}}</strong></u></p> 
+            <p>AMOUNT APPLIED FOR (Kshs.): <u><strong>{{personal_details.ammount_requesting}}</strong></u></p>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="jumbotron">
+            <h4><u> PART B: FAMILY BACKGROUND</u></h4>
+            <p>Your Family Status: <strong><u>{{family_background.family_status}}</u></strong></p>
+            <p>Number Of Siblings ( alive): <strong><u>{{family_background.number_siblings}}</u></strong></p>
+            <p>Estimated Family Income: <strong><u>{{family_background.family_income}}</u></strong> (annually Kshs.)</p>
+            <p>Estimated Family Expense: <strong><u>{{family_background.family_expense}}</u></strong> (annually Kshs.)</p>
+            <span class="font-weight-bold" style="font-size: 22px;"><u>Father</u></span>
+            <p>Full Name: <strong><u>{{family_background.father_name}}</u></strong></p>
+            <p>Address: <strong><u>{{family_background.father_address}}</u></strong></p>
+            <p>Telephone Number: <strong><u>{{family_background.father_mobile_no}}</u></strong></p>
+            <p>Occupation: <strong><u>{{family_background.father_occupation}}</u></strong></p>
+            <p>Type of employment: <strong><u>{{family_background.father_type_of_employment}}</u></strong></p>
+            <p>Main source of income: <strong><u>{{family_background.father_main_source_of_income}}</u></strong></p>
+
+            <span class="font-weight-bold" style="font-size: 22px;"><u>Mother</u></span>
+            <p>Full Name: <strong><u>{{family_background.mother_full_name}}</u></strong></p>
+            <p>Address: <strong><u>{{family_background.mother_address}}</u></strong></p>
+            <p>Telephone Number: <strong><u>{{family_background.mother_telephone_number}}</u></strong></p>
+            <p>Occupation: <strong><u>{{family_background.mother_occupation}}</u></strong></p>
+            <p>Type of employment: <strong><u>{{family_background.mother_type_of_employment}}</u></strong></p>
+            <p>Main source of income: <strong><u>{{family_background.mother_main_source_of_income}}</u></strong></p>
+
+            <span class="font-weight-bold" style="font-size: 22px;"><u>Guardian</u></span>
+            <p>Full Name: <strong><u>{{family_background.guardian_full_name}}</u></strong></p>
+            <p>Address: <strong><u>{{family_background.guardian_address}}</u></strong></p>
+            <p>Telephone Number: <strong><u>{{family_background.guardian_telephone_number}}</u></strong></p>
+            <p>Occupation: <strong><u>{{family_background.guardian_occupation}}</u></strong></p>
+            <p>Type of employment: <strong><u>{{family_background.guardian_type_of_employment}}</u></strong></p>
+            <p>Main source of income: <strong><u>{{family_background.guardian_main_source_of_income}}</u></strong></p>
+            {% if siblings%}
+                <span class="font-weight-bold" style="font-size: 22px;"><u>Siblings</u></span>
+            {% endif %}
+            {% for sibling in siblings %}
+                <p><br>{{ forloop.counter }} <br><br> <br>Sibling Name <strong><u>{{ sibling.sibling_name }}</u></strong></p>
+                <p>Institution Name: <strong><u>{{ sibling.institution }}</u></strong></p>
+                <p>Anmual fees payable (Kshs): <strong><u>{{ sibling.fees }}</u></strong></p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="col-md-6 mt-5">
+        <div class="jumbotron">
+            <h4><u>PART C: APPLICANT'S ADDITIONAL INFORMATION</u></h4>
+            <p>Why are you applying for bursary assistance?<strong><u>{{additional_info.reason}}</u></strong></p>
+
+            <p>Have you received any financial support / bursaries from NG-CDF in the past? <strong><u>
+                {% if additional_info.prev_bursary != 'Not Received' %}
+                    Yes, {{ additional_info.prev_bursary }}
+                {% else %}
+                    No
+                {% endif %}
+            </u></strong></p>
+            
+            <p>Have you received any financial support bursaries from other organizations in the past?
+                <strong><u>
+                    {% if additional_info.org_bursary != 'Not Received' %}
+                    Yes, {{ additional_info.org_bursary }}
+                    {% else %}
+                        No
+                    {% endif %}
+                </u></strong></p>
+            <p>Do you suffer from any physical impairment (disability) ?  <strong><u>
+                {% if additional_info.disability != 'No' %}
+                    Yes, {{ additional_info.disability }}
+                    {% else %}
+                        No
+                    {% endif %}
+            </u></strong></p>
+            <p>Do you suffer from any chronic illness?  <strong><u>
+                {% if additional_info.chronic_illness != 'No' %}
+                    Yes, {{ additional_info.chronic_illness }}
+                    {% else %}
+                        No
+                    {% endif %}
+            </u></strong></p>
+            <p>Do your parents / guardians have any form of disability? <strong><u>
+                {% if additional_info.fam_disability != 'No' %}
+                    Yes, {{ additional_info.fam_disability }}
+                    {% else %}
+                        No
+                    {% endif %}
+            </u></strong></p>
+            <p>Do your parents / guardians suffer from any chronic illness?  <strong><u>
+                {% if additional_info.fam_chronic_illness != 'No' %}
+                    Yes, In secondary school
+                {% else %}
+                    No
+                {% endif %}
+            </u></strong></p>
+            <h3 class="mt-5">EDUCATION FUNDING HISTORY</h3>
+            <p class="mt-4">State the main source of funding for your education in the past as below:</p>
+            <ol type="a">
+                <li>In secondary school<strong><u> {{ additional_info.fund_secondary }}</u></strong></li>
+                <li>In college<strong><u> {{ additional_info.fund_college }}</u></strong></li>
+                <li>In the university<strong><u> {{ additional_info.fund_uni }}</u></strong></li>
+            </ol>
+            <p class="mt-4">Indicate other sources of funding if any</p>
+            <ol type="a">
+                <li>In secondary school<strong><u> {{ additional_info.other_fund_secondary }}</u></strong></li>
+                <li>In college<strong><u> {{ additional_info.other_fund_college }}</u></strong></li>
+                <li>In the university<strong><u> {{ additional_info.other_fund_uni }}</u></strong></li>
+            </ol>
+        </div>
+    </div>
+    
+        <div class="col-md-6 mt-5">
+            <div class="jumbotron">
+                <h4><u>PART D: APPLICANT'S ACADEMIC PERFORMANCE</u></h4>
+                <p>What is your average academic performance? <strong><u>{{academic_performance.average_performance}}</u></strong></p>
+                
+                <p>Have you been sent away from school? 
+                    <strong><u>
+                    {% if academic_performance.sent_away != 'I have not been Sent Away.' %}
+                        Yes, {{ academic_performance.sent_away }}</u></strong>
+                        <br>Specify the number of weeks you stayed away from school: {{ academic_performance.no_of_weeks }}
+                    {% else %}
+                        <strong><u>I have not been Sent Away.</u></strong>
+                    {% endif %}
+                    
+                </p>
+                <p><strong><u>{{academic_performance.sent_away}}</u></strong></p>
+                <p>Annual fees as per fees structure Kshs. <strong><u>{{academic_performance.annual_fees}}</u></strong></p>
+                <p>Last semester's / Term's fee balance Kshs. <strong><u>{{academic_performance.last_sem_fees}}</u></strong></p>
+                <p>This semester's / Term's fee balance Kshs. <strong><u>{{academic_performance.current_sem_fees}}</u></strong></p>
+                <p>Next semester's / Term's fee balance Kshs. <strong><u>{{academic_performance.next_sem_fees}}</u></strong></p>
+                <p>Loan from HELB ( where applicable) <strong><u>{{academic_performance.helb_loan}}</u></strong></p>
+
+                <h5>REFEREES</h5>
+                <p>The student / parent /guardian should provide the names and telephone contacts of at least two reterees who know the family wel1.</p>
+                <ol type="1">
+                    <li>
+                        <p>Name: <strong><u>{{academic_performance.ref_one_name}}</u></strong></p>
+                        <p>Address: <strong><u>{{academic_performance.ref_one_address}}</u></strong></p>
+                        <p>Telephone Number: <strong><u>{{academic_performance.ref_one_number}}</u></strong></p>
+                    </li>
+                    <li>
+                        <p>Name: <strong><u>{{academic_performance.ref_two_name}}</u></strong></p>
+                        <p>Address: <strong><u>{{academic_performance.ref_two_address}}</u></strong></p>
+                        <p>Telephone Number: <strong><u>{{academic_performance.ref_two_number}}</u></strong></p>
+                    </li>
+                </ol>
+            </div>
+        </div>
+    
+
+</div>
+
+<a class="btn btn-primary" href="{% url 'download' %}">Downoad</a>
+    
+</div>
+{% endblock %}
+

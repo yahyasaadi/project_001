@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'crispy_forms',
     'crispy_bootstrap4',
     'django.contrib.admin',
@@ -145,3 +146,42 @@ SERVER_EMAIL = DEFAULT_FROM_EMAIL
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+JAZZMIN_SETTINGS = {
+    # title of the window (Will default to current_admin_site.site_title if absent or None)
+    "site_title": "Admin Panel",
+
+    "site_brand": "Admin Panel",
+
+    # Title on the login screen (19 chars max) (defaults to current_admin_site.site_header if absent or None)
+    "site_header": "Admin Panel",
+     # Welcome text on the login screen
+    "welcome_sign": "Welcome to the Admin Panel",
+    # Logo to use for your site, must be present in static files, used for brand on top left
+    "site_logo": "static/images/overall.jpg",
+    # Copyright on the footer
+    "copyright": "Admin Panel",
+
+     # Links to put along the top menu
+    "topmenu_links": [
+
+        # Url that gets reversed (Permissions can be added)
+        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
+
+        # external url that opens in a new window (Permissions can be added)
+        {"name": "Academic Performance", "url": "http://localhost:8000/admin/users/academicperformance/", "new_window": False},
+        {"name": "Additional Information", "url": "http://localhost:8000/admin/users/additionalinformation/", "new_window": False},
+        {"name": "Family Background", "url": "http://localhost:8000/admin/users/familybackaground/", "new_window": False},
+        {"name": "Owner Detail", "url": "http://localhost:8000/admin/users/ownerdetails/", "new_window": False},
+        {"name": "Personal Detail", "url": "http://localhost:8000/admin/users/personaldetails/", "new_window": False},
+        {"name": "Sibling", "url": "http://localhost:8000/admin/users/sibling/", "new_window": False},
+        # model admin to link to (Permissions checked against model)
+        {"model": "auth.User"},
+        # App with dropdown menu to all its models pages (Permissions checked against models)
+        {"app": "books"},
+    ],
+
+}
+
