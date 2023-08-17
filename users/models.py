@@ -66,13 +66,16 @@ class PersonalDetails(models.Model):
     mobile_no = models.CharField(max_length=20)
     name_polling_station = models.CharField(max_length=100)
     location = models.CharField(max_length=100)
+    sub_location = models.CharField(max_length=100,null=True)
+    physical_address = models.CharField(max_length=100,null=True)
+    permanent_address = models.CharField(max_length=100,null=True)
     ward = models.CharField(max_length=100)
     institution_postal_address = models.CharField(max_length=100)
     institution_telephone_no = models.CharField(max_length=100)
     ammount_requesting = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.fullname
+        return self.user.first_name
 
 
 class FamilyBackaground(models.Model):
@@ -116,4 +119,53 @@ class Sibling(models.Model):
     fees = models.CharField(max_length=200)
 
     def __str__(self):
-        return self.user.first_name +' '+ self.user.last_name
+        return self.user.first_name +' - ' + self.sibling_name
+    
+
+# models
+class AdditionalInformation(models.Model):
+    reason = models.TextField()
+    prev_bursary = models.TextField(default='Not Received')
+    org_bursary = models.TextField(default='Not Received')
+    disability = models.TextField(default='No')
+    chronic_illness = models.TextField(default='No')
+    fam_disability = models.TextField(default='No')
+    fam_chronic_illness = models.TextField(default='No')
+    fund_secondary = models.TextField(null=True)
+    fund_college = models.TextField(null=True)
+    fund_uni = models.TextField(null=True)
+    other_fund_secondary = models.TextField(null=True)
+    other_fund_college = models.TextField(null=True)
+    other_fund_uni = models.TextField(null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.first_name
+
+
+PERFORMANCE_LEVELS = [
+    ('excellent', 'Excellent'),
+    ('very_good', 'Very Good'),
+    ('good', 'Good'),
+    ('fair', 'Fair'),
+    ('poor', 'Poor')
+]
+class AcademicPerformance(models.Model):
+    average_performance = models.CharField(max_length=50, choices=PERFORMANCE_LEVELS)
+    sent_away = models.TextField()
+    no_of_weeks = models.CharField(max_length=50)
+    annual_fees = models.CharField(max_length=50)
+    last_sem_fees = models.CharField(max_length=50)
+    current_sem_fees = models.CharField(max_length=50)
+    next_sem_fees = models.CharField(max_length=50)
+    helb_loan = models.CharField(max_length=50, null=True)
+    ref_one_name = models.CharField(max_length=100)
+    ref_one_address = models.CharField(max_length=255)
+    ref_one_number = models.CharField(max_length=40)
+    ref_two_name = models.CharField(max_length=100)
+    ref_two_address = models.CharField(max_length=255)
+    ref_two_number = models.CharField(max_length=40)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.first_name

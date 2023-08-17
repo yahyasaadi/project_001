@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from CDF import settings
 # from django.http import HttpResponse
 from .tokens import generate_token
-from .models import OwnerDetails, PersonalDetails, FamilyBackaground, Sibling
+from .models import OwnerDetails, PersonalDetails, FamilyBackaground, Sibling, AdditionalInformation, AcademicPerformance
 
 # Create your views here.
 def home(request):
@@ -286,3 +286,85 @@ def signout(request):
     logout(request)
     messages.success(request, "Logged Out Successfully!!")
     return redirect('home')
+
+
+# the views
+def additional_info(request):
+    if request.method == "POST":
+        reason = request.POST['reason']
+        prev_bursary = request.POST['prev_bursary']
+        org_bursary = request.POST['org_bursary']
+        disability = request.POST['disability']
+        chronic_illness = request.POST['chronic_illness']
+        fam_disability = request.POST['fam_disability']
+        fam_chronic_illness = request.POST['fam_chronic_illness']
+        fund_secondary = request.POST['fund_secondary']
+        fund_college = request.POST['fund_college']
+        fund_uni = request.POST['fund_uni']
+        other_fund_secondary = request.POST['other_fund_secondary']
+        other_fund_college = request.POST['other_fund_college']
+        other_fund_uni = request.POST['other_fund_uni']
+
+        additional_info = AdditionalInformation(
+            user=request.user,
+            reason=reason,
+            prev_bursary = prev_bursary,
+            org_bursary = org_bursary,
+            disability = disability,
+            chronic_illness = chronic_illness,
+            fam_disability = fam_disability,
+            fam_chronic_illness = fam_chronic_illness,
+            fund_secondary = fund_secondary,
+            fund_college = fund_college,
+            fund_uni = fund_uni,
+            other_fund_secondary = other_fund_secondary,
+            other_fund_college = other_fund_college,
+            other_fund_uni = other_fund_uni
+        )
+        additional_info.save()
+        return HttpResponse('Saved')
+    else:
+        owner = OwnerDetails.objects.first() 
+        return render(request, 'users/additional_info.html',{"owner":owner})
+
+
+def academic_performance(request):
+    if request.method == "POST":
+        average_performance = request.POST['average_performance']
+        sent_away = request.POST['sent_away']
+        no_of_weeks = request.POST['no_of_weeks']
+        annual_fees = request.POST['annual_fees']
+        last_sem_fees = request.POST['last_sem_fees']
+        current_sem_fees = request.POST['current_sem_fees']
+        next_sem_fees = request.POST['next_sem_fees']
+        helb_loan = request.POST['helb_loan']
+        ref_one_name = request.POST['ref_one_name']
+        ref_one_address = request.POST['ref_one_address']
+        ref_one_number = request.POST['ref_one_number']
+        ref_two_name = request.POST['ref_two_name']
+        ref_two_address = request.POST['ref_two_address']
+        ref_two_number = request.POST['ref_two_number']
+
+        academic_performance = AcademicPerformance(
+            user=request.user,
+            average_performance = average_performance,
+            sent_away = sent_away,
+            no_of_weeks = no_of_weeks,
+            annual_fees = annual_fees,
+            last_sem_fees = last_sem_fees,
+            current_sem_fees = current_sem_fees,
+            next_sem_fees = next_sem_fees,
+            helb_loan = helb_loan,
+            ref_one_name = ref_one_name,
+            ref_one_address = ref_one_address,
+            ref_one_number = ref_one_number,
+            ref_two_name = ref_two_name,
+            ref_two_address = ref_two_address,
+            ref_two_number = ref_two_number
+        )
+
+        academic_performance.save()
+        return HttpResponse('Saved')
+    else:
+        owner = OwnerDetails.objects.first() 
+        return render(request, 'users/academic_performance.html',{"owner":owner})
