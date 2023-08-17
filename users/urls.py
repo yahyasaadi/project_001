@@ -11,6 +11,8 @@ urlpatterns = [
     path('family_background', views.family_background, name="family_background"),
     path('additional_info', views.additional_info, name="additional_info"),
     path('academic_performance', views.academic_performance, name="academic_performance"),
+    path('review', views.review, name="review"),
+    path('download', views.generate_pdf, name="download"),
     
     path('students_dashboard/', views.studentsDashboard, name="students_dashboard"),
     

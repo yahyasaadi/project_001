@@ -1,0 +1,276 @@
+<div class="personal_details">
+    <div class="container mt-5">
+        <h1>Review</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="jumbotron">
+                    <h5>i. Personal, Institutional and Other Details</h5>
+                    <p class="mt-5">Name of Student (as it appears in ID/official documents):<u> <strong>{{personal_details.fullname}}</strong></u> </p>
+                    <p class="mt-2">GENDER: <u><strong>{{personal_details.gender}}</strong></u></p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <P>DATE OF BIRTH <u><strong>{{personal_details.date_of_birth}}</strong></u></P>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mt-2">ID. NO./PASSPORT NO <u><strong>{{personal_details.id_or_passport_no}}</strong></u></p>
+                        </div>
+                    </div>
+                    <p class="mt-2">NAME OF SCHOOL /COLLEGE / UNIVERSITY: <u><strong>{{personal_details.institution}}</strong></u></p>
+                    <p class="mt-2">ADMISSION/REGISTRATION NUMBER <u><strong>{{personal_details.admin_no}}</strong></u></p>
+                    <p class="mt-2">CAMPUS/ BRANCH: (for tertiary institution and University) <u><strong>{{personal_details.campus_or_branch}}</strong></u></p>
+                    <p class="mt-2">FACULTY/ DEPARTMENT: (for tertiary institution and University) <u><strong>{{personal_details.faculty}}</strong></u></p>
+                    <p class="mt-2">COURSE OF STUDY: (for tertiary institution and University) <u><strong>{{personal_details.course}}</strong></u></p>
+                    <p class="mt-2">MODE OF STUDY: <u><strong>{{personal_details.mode_of_study}}</strong></u></p>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <P>CLASS / GRADE/ YEAR OF STUDY:  <u><strong>{{personal_details.year_of_study}}</strong></u></P>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mt-2">COURSE DURATION: <u><strong>{{personal_details.course_duration}}</strong></u></p>
+                        </div>
+                    </div>
+
+                    <p class="mt-2">EXPECTED YEAR AND MONTH OF COMPLETION: <u><strong>{{personal_details.year_of_completion}}</strong></u></p>
+                    <p class="mt-2">MOBILE /TELEPHONE NUMBER: <u><strong>{{personal_details.mobile_no}}</strong></u></p>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <P>POLLING STATION:<u><strong>{{personal_details.name_polling_station}}</strong></u></P>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mt-2">WARD: <u><strong>{{personal_details.ward}}</strong></u></p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <P>LOCATION:<u><strong>{{personal_details.location}}</strong></u></P>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mt-2">SUB LOCATION: <u><strong>{{personal_details.location}}</strong></u></p>
+                        </div>
+                    </div>
+
+                    <p class="mt-2">PHYSICAL ADDRESS: <u><strong>{{personal_details.institution_postal_address}}</strong></u></p>
+                    <p class="mt-2">PERMANENT ADDRESS: <u><strong>{{personal_details.institution_postal_address}}</strong></u></p>
+
+                    <p class="mt-2">INSTITUTION'S POSTAL ADDRESS: <u><strong>{{personal_details.institution_postal_address}}</strong></u></p>
+                    <p class="mt-2">INSTITUTION'S TELEPHONE NUMBER: <u><strong>{{personal_details.institution_telephone_no}}</strong></u></p>
+
+                    <p class="mt-2">AMOUNT APPLIED FOR (Kshs.): <u><strong>{{personal_details.ammount_requesting}}</strong></u></p>
+
+                    
+                </div>
+            </div>
+
+
+
+            <div class="col-md-6">
+                <div class="jumbotron">
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+from django.db import models
+from django.contrib.auth.models import User
+
+
+family_status_choices = [
+        ('both_parents_dead', 'Both Parents Dead'),
+        ('one_parent_dead', 'One Parent Dead'),
+        ('both_parents_alive', 'Both Parents Alive'),
+        ('single_parent', 'Single Parent'),
+        ('others', 'Others'),
+    ]    
+father_employment_choices = [
+    ('permanent', 'Permanent'),
+    ('contractual', 'Contractual'),
+    ('casual', 'Casual'),
+    ('retired', 'Retired'),
+    ('self_employed', 'Self Employed'),
+    ('none', 'None'),
+]
+mother_employment_choices = [
+        ('permanent', 'Permanent'),
+        ('contractual', 'Contractual'),
+        ('casual', 'Casual'),
+        ('retired', 'Retired'),
+        ('self_employed', 'Self Employed'),
+        ('none', 'None'),
+    ]
+
+guardian_employment_choices = [
+        ('permanent', 'Permanent'),
+        ('contractual', 'Contractual'),
+        ('casual', 'Casual'),
+        ('retired', 'Retired'),
+        ('self_employed', 'Self Employed'),
+        ('none', 'None'),
+    ]
+
+
+
+
+# Create your models here.
+class OwnerDetails(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    county = models.CharField(max_length=100)
+
+
+    def __str__(self):
+        return self.name
+    
+class PersonalDetails(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    fullname = models.CharField(max_length=255)
+    id_or_passport_no = models.CharField(max_length=255, null=True)
+    gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female')])
+    date_of_birth = models.DateField()
+    institution = models.CharField(max_length=255)
+    admin_no = models.CharField(max_length=255)
+    campus_or_branch = models.CharField(max_length=255)
+    faculty = models.CharField(max_length=255)
+    course = models.CharField(max_length=255)
+    course_duration = models.CharField(max_length=255)
+    mode_of_study = models.CharField(max_length=20, choices=[('regular', 'Regular'), ('part_time', 'Part Time'),('parallel','Parallel'),('boarding','Boarding'),('day','Day'),('online','Online')])
+    year_of_study = models.CharField(max_length=20)
+    year_of_completion = models.CharField(max_length=50)
+    mobile_no = models.CharField(max_length=20)
+    name_polling_station = models.CharField(max_length=100)
+    location = models.CharField(max_length=100)
+    sub_location = models.CharField(max_length=100,null=True)
+    physical_address = models.CharField(max_length=100,null=True)
+    permanent_address = models.CharField(max_length=100,null=True)
+    ward = models.CharField(max_length=100)
+    institution_postal_address = models.CharField(max_length=100)
+    institution_telephone_no = models.CharField(max_length=100)
+    ammount_requesting = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.user.first_name
+
+
+class FamilyBackaground(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    family_status = models.CharField(max_length=30, choices=family_status_choices)
+    number_siblings = models.CharField(max_length=10)
+    family_income = models.CharField(max_length=10)
+    family_expense = models.CharField(max_length=10)
+    father_name = models.CharField(max_length=250)
+    father_address = models.CharField(max_length=250)
+    father_mobile_no = models.CharField(max_length=250)
+    father_occupation = models.CharField(max_length=250)
+    father_type_of_employment = models.CharField(max_length=30, choices=father_employment_choices)
+    father_main_source_of_income = models.CharField(max_length=100)
+    mother_full_name = models.CharField(max_length=100)
+    mother_address = models.CharField(max_length=200)
+    mother_telephone_number = models.CharField(max_length=15)
+    mother_occupation = models.CharField(max_length=100)
+    mother_type_of_employment = models.CharField(max_length=30, choices=mother_employment_choices)
+    mother_main_source_of_income = models.CharField(max_length=100)
+
+    #guardian info
+    guardian_full_name = models.CharField(max_length=100)
+    guardian_address = models.CharField(max_length=200)
+    guardian_telephone_number = models.CharField(max_length=15)
+    guardian_occupation = models.CharField(max_length=100)
+
+    guardian_type_of_employment = models.CharField(max_length=30, choices=guardian_employment_choices)
+    guardian_main_source_of_income = models.CharField(max_length=100)
+
+
+    def __str__(self):
+        return self.user.first_name
+
+
+
+class Sibling(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='siblings')
+    sibling_name = models.CharField(max_length=200)
+    institution = models.CharField(max_length=200)
+    fees = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.user.first_name +' - ' + self.sibling_name
+    
+
+# models
+class AdditionalInformation(models.Model):
+    reason = models.TextField()
+    prev_bursary = models.TextField(default='Not Received')
+    org_bursary = models.TextField(default='Not Received')
+    disability = models.TextField(default='No')
+    chronic_illness = models.TextField(default='No')
+    fam_disability = models.TextField(default='No')
+    fam_chronic_illness = models.TextField(default='No')
+    fund_secondary = models.TextField(null=True)
+    fund_college = models.TextField(null=True)
+    fund_uni = models.TextField(null=True)
+    other_fund_secondary = models.TextField(null=True)
+    other_fund_college = models.TextField(null=True)
+    other_fund_uni = models.TextField(null=True)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.first_name
+
+
+PERFORMANCE_LEVELS = [
+    ('excellent', 'Excellent'),
+    ('very_good', 'Very Good'),
+    ('good', 'Good'),
+    ('fair', 'Fair'),
+    ('poor', 'Poor')
+]
+class AcademicPerformance(models.Model):
+    average_performance = models.CharField(max_length=50, choices=PERFORMANCE_LEVELS)
+    sent_away = models.TextField()
+    no_of_weeks = models.CharField(max_length=50)
+    annual_fees = models.CharField(max_length=50)
+    last_sem_fees = models.CharField(max_length=50)
+    current_sem_fees = models.CharField(max_length=50)
+    next_sem_fees = models.CharField(max_length=50)
+    helb_loan = models.CharField(max_length=50, null=True)
+    ref_one_name = models.CharField(max_length=100)
+    ref_one_address = models.CharField(max_length=255)
+    ref_one_number = models.CharField(max_length=40)
+    ref_two_name = models.CharField(max_length=100)
+    ref_two_address = models.CharField(max_length=255)
+    ref_two_number = models.CharField(max_length=40)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.user.first_name

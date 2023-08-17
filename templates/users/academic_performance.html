@@ -1,0 +1,133 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+<style>
+    #reason{
+        display: none;
+    }
+
+</style>
+<script>
+    function toggleTextarea() {
+        var selectValue = document.getElementById("sent_away").value;
+        var textarea = document.getElementById("reason");
+
+        if (selectValue === "yes") {
+            textarea.style.display = "block";
+        } else {
+            textarea.style.display = "none";
+        }
+    }
+</script>
+<div class="personal_details">
+    <div class="container mt-5">
+        <form method='post'  action='{% url "academic_performance" %}'>
+          {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="jumbotron">
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">Applicant's Academic Performance</label> <br>
+                        <input required type="radio" name='average_performance' value= 'excellent'> Excellent<br>
+                        <input required type="radio" name='average_performance' value= 'very_good'> Very Good<br>
+                        <input required type="radio" name='average_performance' value= 'good'> Good<br>
+                        <input required type="radio" name='average_performance' value= 'fair'> Fair<br>
+                        <input required type="radio" name='average_performance' value= 'poor'> Poor<br>
+                    </div>
+
+                </div>
+                <div class="form-group mt-4">
+                    <label for="exampleInputEmail1">Have you been sent away from school?</label>
+                    <select class="form-control mt-2" id="sent_away" onchange="toggleTextarea()">
+                        <option value="no">No</option>
+                        <option value="yes">Yes</option>
+                    </select>
+                </div>
+                <div class="form-group mt-2" id="reason">
+                        <label for="additionalTextarea">Provide reasons for your absence.</label>
+                        <textarea name="sent_away"  class="form-control" id="additionalTextarea1" rows="4" cols="50"></textarea>
+
+                        <div class="form-group mt-4" >
+                            <label for="exampleInputEmail1">Specify the number of weeks you stayed away from school</label>
+        
+                            <input type="number" class="form-control mt-2" name='no_of_weeks'  placeholder="In secondary school">
+        
+                            
+                        </div>
+                </div>
+
+                <div class="form-group mt-4" >
+                    <label for="exampleInputEmail1">Annual fees as per fees structure Kshs</label>
+                    <input required type="number" class="form-control mt-2" name='annual_fees'>
+                </div>
+
+                <div class="form-group mt-4" >
+                    <label for="exampleInputEmail1">Last semester's / Term's fee balance Ksh</label>
+                    <input required type="number" class="form-control mt-2" name='last_sem_fees'>
+                </div>
+
+                <div class="form-group mt-4" >
+                    <label for="exampleInputEmail1">This semester's / Term's fee balance Kshs</label>
+                    <input required type="number" class="form-control mt-2" name='current_sem_fees'>
+                </div>
+
+                <div class="form-group mt-4" >
+                    <label for="exampleInputEmail1">Next semester's / Term's fee balance Ksh</label>
+                    <input required type="number" class="form-control mt-2" name='next_sem_fees'>
+                </div>
+
+                <div class="form-group mt-4" >
+                    <label for="exampleInputEmail1"> Loan from HELB ( where applicable)</label>
+                    <input required type="number" class="form-control mt-2" name='helb_loan'>
+                </div>
+
+                
+            </div>
+
+
+            <div class="col-md-6">
+                <div class="jumbotron">
+                    <div class="form-group">
+                        <h4>Referees</h4>
+                        <label for="exampleInputEmail1">The student / parent /guardian should provide the names and telephone contacts of at least two reterees who
+                            know the family well</label> <br>
+                            <label class="mt-5" for="exampleInputEmail1">Name:</label>
+                            <input required type="text" class="form-control mt-2" name='ref_one_name'  placeholder="Name of first referee">
+
+                            <label for="exampleInputEmail1">Address:</label>
+                            <input required type="text" class="form-control mt-2" name='ref_one_address'  placeholder="Address of first referee">
+
+                            <label for="exampleInputEmail1">Telephone Number:</label>
+                            <input required type="text" class="form-control mt-2" name='ref_one_number'  placeholder="Telephone Number of first referee">
+
+                            <label class="mt-5" for="exampleInputEmail1">Name:</label>
+                            <input required type="text" class="form-control mt-2" name='ref_two_name'  placeholder="Name of second referee">
+
+                            <label for="exampleInputEmail1">Address:</label>
+                            <input required type="text" class="form-control mt-2" name='ref_two_address'  placeholder="Address of second referee">
+
+                            <label for="exampleInputEmail1">Telephone Number:</label>
+                            <input required type="text" class="form-control mt-2" name='ref_two_number'  placeholder="Telephone Number of second referee">
+                    </div>
+                </div>
+            </div>
+
+
+
+
+        </div>
+        <button type="submit" class="mt-5 btn btn-outline-info btn-block">Save and Proceed</button>
+
+        </div>
+
+        <!-- <input type="submit" value="submit"> -->
+    </form>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+{% endblock %}
