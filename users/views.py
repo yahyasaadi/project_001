@@ -198,10 +198,101 @@ def family_background(request):
             saving_sibling.save()
         return redirect('additional_info')
     else:
-        
-        owner = OwnerDetails.objects.first() 
+        owner = OwnerDetails.objects.first()
+        family_background = FamilyBackaground.objects.get(user = request.user)
+        if family_background is not None:
+            return redirect('update_family_background')
         return render(request, 'users/family_background.html',{"owner":owner})
-    
+
+
+@login_required
+def update_family_background(request):
+    if request.method == 'POST':
+        family_status = request.POST['family_status']
+        number_siblings = request.POST['number_siblings']
+        family_income = request.POST['family_income']
+        family_expense = request.POST['family_expense']
+        father_name = request.POST['father_name']
+        father_address = request.POST['father_address']
+        father_mobile_no = request.POST['father_mobile_no']
+        father_occupation = request.POST['father_occupation']
+        father_type_of_employment = request.POST['father_type_of_employment']
+        father_main_source_of_income = request.POST['father_main_source_of_income']
+        mother_full_name = request.POST['mother_full_name']
+        mother_address = request.POST['mother_address']
+        mother_telephone_number = request.POST['mother_telephone_number']
+        mother_occupation = request.POST['mother_occupation']
+        mother_type_of_employment = request.POST['mother_type_of_employment']
+        mother_main_source_of_income = request.POST['mother_main_source_of_income']
+        guardian_full_name = request.POST['guardian_full_name']
+        guardian_address = request.POST['guardian_address']
+        guardian_telephone_number = request.POST['guardian_telephone_number']
+        guardian_occupation = request.POST['guardian_occupation']
+        guardian_type_of_employment = request.POST['guardian_type_of_employment']
+        guardian_main_source_of_income = request.POST['guardian_main_source_of_income']
+        user = request.user
+
+        updating = FamilyBackaground.objects.filter(user=user).update(
+            user=user,
+            family_status=family_status,
+            number_siblings=number_siblings,
+            family_income=family_income,
+            family_expense=family_expense,
+            father_name=father_name,
+            father_address=father_address,
+            father_mobile_no=father_mobile_no,
+            father_occupation=father_occupation,
+            father_type_of_employment=father_type_of_employment,
+            father_main_source_of_income=father_main_source_of_income,
+            mother_full_name=mother_full_name,
+            mother_address=mother_address,
+            mother_telephone_number=mother_telephone_number,
+            mother_occupation=mother_occupation,
+            mother_type_of_employment=mother_type_of_employment,
+            mother_main_source_of_income=mother_main_source_of_income,
+            guardian_full_name=guardian_full_name,
+            guardian_address=guardian_address,
+            guardian_telephone_number=guardian_telephone_number,
+            guardian_occupation=guardian_occupation,
+            guardian_type_of_employment=guardian_type_of_employment,
+            guardian_main_source_of_income=guardian_main_source_of_income
+        )
+        x= Sibling.objects.filter()
+        x.delete()
+        sibling_names = request.POST.getlist('name[]')
+        sibling_institutions = request.POST.getlist('institution[]')
+        sibling_fees = request.POST.getlist('fees[]')
+
+        for i in range(len(sibling_names)):
+            sibling_name = sibling_names[i]
+            sibling_institution = sibling_institutions[i]
+            sibling_fee = sibling_fees[i]
+
+            saving_sibling = Sibling(
+                user=request.user,
+                sibling_name=sibling_name,
+                institution= sibling_institution,
+                fees=sibling_fee
+,
+            )
+            saving_sibling.save()
+        print(updating)
+        if updating:
+            # print(updating)
+            return redirect('additional_info')
+        else:
+            print('not updated')
+            return render(request, 'users/family_backgroundUpdate.html',{"owner":owner,'family_background':family_background})
+
+    else:
+        owner = OwnerDetails.objects.first() 
+        family_background = FamilyBackaground.objects.get(user=request.user)
+        siblings = Sibling.objects.filter(user=request.user)
+        # print(request.user)
+        return render(request, 'users/family_backgroundUpdate.html',{"owner":owner,'family_background':family_background,'siblings':siblings})
+
+
+
 @login_required
 def personal_details(request):
     if request.method == 'POST':
@@ -264,8 +355,88 @@ def personal_details(request):
         return redirect('family_background')
 
     else:
-        owner = OwnerDetails.objects.first() 
+        owner = OwnerDetails.objects.first()
+        personal_details = PersonalDetails.objects.get(user = request.user)
+        if personal_details is not None:
+            return redirect('update_personal_details')
         return render(request, 'users/personal_details.html',{"owner":owner})
+
+@login_required
+def update_personal_details(request):
+    if request.method == 'POST':
+        user = request.user
+        print(user)
+        fullname = request.POST['fullname']
+        id_or_passport_no = request.POST['id_or_passport_no']
+        gender = request.POST['gender']
+        date_of_birth = request.POST['date_of_birth']
+        institution = request.POST['institution']
+
+        admin_no = request.POST['admin_no']
+        campus_or_branch = request.POST['campus_or_branch']
+        faculty = request.POST['faculty']
+        course = request.POST['course']
+        course_duration = request.POST['course_duration']
+
+        mode_of_study = request.POST['mode_of_study']
+        year_of_study = request.POST['year_of_study']
+        year_of_completion = request.POST['year_of_completion']
+        mobile_no = request.POST['mobile_no']
+        name_polling_station = request.POST['name_polling_station']
+
+        location = request.POST['location']
+        sub_location = request.POST['sub_location']
+        ward = request.POST['ward']
+        physical_address = request.POST['physical_address']
+        permanent_address = request.POST['permanent_address']
+        institution_postal_address = request.POST['institution_postal_address']
+        institution_telephone_no = request.POST['institution_telephone_no']
+        ammount_requesting = request.POST['ammount_requesting']
+
+        updating = PersonalDetails.objects.filter(user=user).update(
+            user=user,
+            fullname=fullname,
+            id_or_passport_no= id_or_passport_no,
+            gender=gender,
+            date_of_birth=date_of_birth,
+            institution=institution,
+            admin_no=admin_no,
+            campus_or_branch=campus_or_branch,
+            faculty=faculty,
+            course=course,
+            course_duration=course_duration,
+            mode_of_study=mode_of_study,
+            year_of_study=year_of_study,
+            year_of_completion=year_of_completion,
+            mobile_no=mobile_no,
+            name_polling_station=name_polling_station,
+            location=location,
+            sub_location=sub_location,
+            ward=ward,
+            physical_address=physical_address,
+            permanent_address=permanent_address,
+            institution_postal_address= institution_postal_address,
+            institution_telephone_no=institution_telephone_no,
+            ammount_requesting=ammount_requesting
+        )
+        
+        print(updating)
+        if updating:
+            print(updating)
+            return redirect('family_background')
+
+        else:
+            print('not updated')
+            return render(request, 'users/personal_detailsUpdate.html',{"owner":owner,'personal_details':personal_details})
+
+
+    else:
+        owner = OwnerDetails.objects.first() 
+        personal_details = PersonalDetails.objects.get(user=request.user)
+        # print(request.user)
+        return render(request, 'users/personal_detailsUpdate.html',{"owner":owner,'personal_details':personal_details})
+
+
 
 def signin(request):
     if request.method == "POST":
@@ -355,7 +526,85 @@ def additional_info(request):
         return redirect("academic_performance")
     else:
         owner = OwnerDetails.objects.first() 
-        return render(request, 'users/additional_info.html',{"owner":owner})
+        additional_info = AdditionalInformation.objects.get(user=request.user)
+        if additional_info is not None:
+            return redirect('update_additional_info')
+        else:
+            return render(request, 'users/additional_info.html',{"owner":owner})
+
+
+
+
+
+
+def update_additional_info(request):
+    if request.method=='POST':
+        reason = request.POST['reason']
+        prev_bursary = request.POST['prev_bursary']
+        org_bursary = request.POST['org_bursary']
+        disability = request.POST['disability']
+        chronic_illness = request.POST['chronic_illness']
+        fam_disability = request.POST['fam_disability']
+        fam_chronic_illness = request.POST['fam_chronic_illness']
+        fund_secondary = request.POST['fund_secondary']
+        fund_college = request.POST['fund_college']
+        fund_uni = request.POST['fund_uni']
+        other_fund_secondary = request.POST['other_fund_secondary']
+        other_fund_college = request.POST['other_fund_college']
+        other_fund_uni = request.POST['other_fund_uni']
+        user=request.user,
+
+        if prev_bursary == '':
+            prev_bursary = "Not Received"
+
+        if org_bursary == '':
+            org_bursary = "Not Received"
+
+        if disability == '':
+            disability = "No"
+
+        if chronic_illness == '':
+            chronic_illness = "No"
+
+        if fam_disability == '':
+            fam_disability = "No"
+
+        if fam_chronic_illness == '':
+            fam_chronic_illness = "No"
+
+        updating = AdditionalInformation.objects.filter(user=request.user).update(
+            user=request.user,
+            reason=reason,
+            prev_bursary = prev_bursary,
+            org_bursary = org_bursary,
+            disability = disability,
+            chronic_illness = chronic_illness,
+            fam_disability = fam_disability,
+            fam_chronic_illness = fam_chronic_illness,
+            fund_secondary = fund_secondary,
+            fund_college = fund_college,
+            fund_uni = fund_uni,
+            other_fund_secondary = other_fund_secondary,
+            other_fund_college = other_fund_college,
+            other_fund_uni = other_fund_uni
+        )
+        print(updating)
+        if updating:
+            print(updating)
+            return redirect('academic_performance')
+
+        else:
+            print('not updated')
+            return redirect('update_additional_info')
+
+
+        
+    else:
+        owner = OwnerDetails.objects.first() 
+        additional_info = AdditionalInformation.objects.get(user=request.user)
+        # print(request.user)
+        return render(request, 'users/additional_info_update.html',{"owner":owner,'additional_info':additional_info})
+
 
 @login_required
 def academic_performance(request):
@@ -401,33 +650,88 @@ def academic_performance(request):
         )
 
         academic_performance.save()
-        return redirect('review')
+        return redirect('download')
     else:
         owner = OwnerDetails.objects.first() 
-        return render(request, 'users/academic_performance.html',{"owner":owner})
+        academic_performance = AcademicPerformance.objects.get(user=request.user)
+        if academic_performance is not None:
+            return redirect('update_academic_performance')
+        else:
+            return render(request, 'users/update_academic_performance.html',{"owner":owner})
     
 
 
+def update_academic_performance(request):
+    if request.method=='POST':
+        average_performance = request.POST['average_performance']
+        sent_away = request.POST['sent_away']
+        no_of_weeks = request.POST['no_of_weeks']
+        annual_fees = request.POST['annual_fees']
+        last_sem_fees = request.POST['last_sem_fees']
+        current_sem_fees = request.POST['current_sem_fees']
+        next_sem_fees = request.POST['next_sem_fees']
+        helb_loan = request.POST['helb_loan']
+        ref_one_name = request.POST['ref_one_name']
+        ref_one_address = request.POST['ref_one_address']
+        ref_one_number = request.POST['ref_one_number']
+        ref_two_name = request.POST['ref_two_name']
+        ref_two_address = request.POST['ref_two_address']
+        ref_two_number = request.POST['ref_two_number']
+
+        if sent_away == '':
+            sent_away = 'I have not been Sent Away.'
+
+        if no_of_weeks == '':
+            no_of_weeks = 0
+
+        updating = AcademicPerformance.objects.filter(user=request.user).update(
+            user=request.user,
+            average_performance = average_performance,
+            sent_away = sent_away,
+            no_of_weeks = no_of_weeks,
+            annual_fees = annual_fees,
+            last_sem_fees = last_sem_fees,
+            current_sem_fees = current_sem_fees,
+            next_sem_fees = next_sem_fees,
+            helb_loan = helb_loan,
+            ref_one_name = ref_one_name,
+            ref_one_address = ref_one_address,
+            ref_one_number = ref_one_number,
+            ref_two_name = ref_two_name,
+            ref_two_address = ref_two_address,
+            ref_two_number = ref_two_number
+         )
+        print(updating)
+        if updating:
+            print(updating)
+            return redirect('download')
+
+        else:
+            print('not updated')
+            return redirect('academic_performance')
+    else:
+        owner = OwnerDetails.objects.first() 
+        academic_performance = AcademicPerformance.objects.get(user=request.user)
+        return render(request, 'users/update_academic_performance.html',{"owner":owner,'academic_performance':academic_performance})
 
 
-
-@login_required
-def review(request):
-    owner = OwnerDetails.objects.first()
-    personal_details = PersonalDetails.objects.get(user = request.user)
-    family_background = FamilyBackaground.objects.get(user = request.user)
-    siblings = Sibling.objects.filter(user = request.user)
-    additional_info = AdditionalInformation.objects.get(user = request.user)
-    academic_performance = AcademicPerformance.objects.get(user = request.user)
-    context = {
-        'owner':owner,
-        'personal_details':personal_details,
-        'family_background':family_background,
-        'siblings':siblings,
-        'additional_info':additional_info,
-        'academic_performance':academic_performance
-        }
-    return render(request, 'users/review.html',context)
+# @login_required
+# def review(request):
+#     owner = OwnerDetails.objects.first()
+#     personal_details = PersonalDetails.objects.get(user = request.user)
+#     family_background = FamilyBackaground.objects.get(user = request.user)
+#     siblings = Sibling.objects.filter(user = request.user)
+#     additional_info = AdditionalInformation.objects.get(user = request.user)
+#     academic_performance = AcademicPerformance.objects.get(user = request.user)
+#     context = {
+#         'owner':owner,
+#         'personal_details':personal_details,
+#         'family_background':family_background,
+#         'siblings':siblings,
+#         'additional_info':additional_info,
+#         'academic_performance':academic_performance
+#         }
+#     return render(request, 'users/review.html',context)
 
 
 
@@ -454,14 +758,14 @@ def generate_pdf(request):
 
     class PDF(FPDF):
         def header(self):
-            self.set_font('Times', 'B', 12)
-            self.cell(0, 10, '123456778/23', 0, 1, 'R')
+            self.set_font('Times', 'B', 8)
+            # self.cell(0, 10, '123456778/23', 0, 1, 'R')
             self.cell(0, 5, f'{current_date1}', 0, 1, 'L')
         
         def footer(self):
             self.set_y(-15)
             self.set_font('Times', 'I', 8)
-            self.cell(0, 10, 'Generated by: ' + request.user.get_full_name(), 0, 0, 'L')
+            self.cell(0, 10, 'Name of the Applicant: ' + request.user.get_full_name(), 0, 0, 'L')
 
     pdf = PDF()
     pdf.add_page()
@@ -486,7 +790,7 @@ def generate_pdf(request):
     
     content = (
         "1. The constituency bursary scheme has limited available funds and is meant to support only the very needy cases.\n"
-        "   Persons who are able are not expected to apply.\n"
+        "    Persons who are able are not expected to apply.\n"
         "2. It is an offense to give false information and once discovered will lead to disqualification.\n"
         "3. Total and Partial orphans MUST present supporting documents from the area chief or Religious Leader\n"
         "4. All forms shall be returned at the {0} NG-CDF offices not later than 7th April 2023. NB:Any form\n"
@@ -674,10 +978,10 @@ def generate_pdf(request):
     pdf.cell(0, 10, "PART C: DECLARATIONS", ln=True, align='L')
     pdf.cell(0, 10, "(1) STUDENT'S DECLARATION", ln=True, align='L')
     pdf.set_font("Times", size=12)
-    pdf.cell(0, 10, "I declare that I have read this form/ this form has been read to me and I hereby confirm that the", ln=True, align='L')
-    pdf.cell(0, 10, "information given herein is true to the best of my knowledge and belief; I understand that any false", ln=True, align='L')
-    pdf.cell(0, 10, "information provided shall lead to my automatic disqualification by the committee.", ln=True, align='L')
-
+    pdf.cell(0, 6, "I declare that I have read this form/ this form has been read to me and I hereby confirm that the", ln=True, align='L')
+    pdf.cell(0, 6, "information given herein is true to the best of my knowledge and belief; I understand that any false", ln=True, align='L')
+    pdf.cell(0, 6, "information provided shall lead to my automatic disqualification by the committee.", ln=True, align='L')
+    pdf.ln(5)
     pdf.cell(0, 6, "Student's Signature:........................................", 0, 0)
     pdf.cell(-100)
     pdf.cell(0, 6, "Date:.......................", 0, 1)
@@ -686,10 +990,10 @@ def generate_pdf(request):
     pdf.set_font("Times", 'B', 14)
     pdf.cell(0, 10, "(2) PARENT'S / GUARDIAN'S DECLARATION", ln=True, align='L')
     pdf.set_font("Times", size=12)
-    pdf.cell(0, 10, "I declare that I have read this form/ this form has been read to me and I hereby confirm that the ", ln=True, align='L')
-    pdf.cell(0, 10, "information given herein is true to the best of my knowledge and belief; I understand that any false", ln=True, align='L')
-    pdf.cell(0, 10, "information provided shall lead to disqualification of the student by the committee.", ln=True, align='L')
-
+    pdf.cell(0, 6, "I declare that I have read this form/ this form has been read to me and I hereby confirm that the ", ln=True, align='L')
+    pdf.cell(0, 6, "information given herein is true to the best of my knowledge and belief; I understand that any false", ln=True, align='L')
+    pdf.cell(0, 6, "information provided shall lead to disqualification of the student by the committee.", ln=True, align='L')
+    pdf.ln(5)
     pdf.cell(0, 6, "Parent's /Guardian's Name:............................................  Date.....................", 0, 0)
     pdf.cell(-50)
     pdf.cell(0, 6, "Sign:.......................", 0, 1)
@@ -700,14 +1004,110 @@ def generate_pdf(request):
     pdf.cell(0, 10, "PART D: VERIFICATIONS", ln=True, align='L')
     pdf.set_font("Times", size=12)
     pdf.cell(0, 6, "Verified by:", ln=True, align='L')
+
     pdf.cell(0, 6, "a). Religious leader :",ln=True, align='L')
     pdf.cell(0, 6, "Name of religion:...................................................................................",ln=True, align='L')
     pdf.cell(0, 6, "Type of religion: Christian ( ) Muslim ( ) Hindu ( ) Any other ( ) (tick appropriately)",ln=True, align='L')
     pdf.cell(0, 6, "If other specify....................................................................................",ln=True, align='L')
     pdf.ln(2)
-    pdf.multi_cell(0, 6, "Comment on the status of the family / parents of the applicant.......................................................\n.......................................................................................................................................................\n.................", 0, 0)
+    pdf.multi_cell(0, 6, "Comment on the status of the family / parents of the applicant............................................................\n................................................................................................................................................................\n.......................................................................", 0, 0)
+    pdf.ln(2)
+    pdf.cell(0, 6, "I CERTIFY THAT THE INFORMATION GIVEN HEREIN IS TRUE",ln=True, align='L')
+    pdf.ln(3)
+    pdf.cell(0, 6, "NAME:............................................  SIGNATURE.....................", 0, 0)
+    pdf.cell(-80)
+    pdf.cell(0, 6, "DATE & OFFICIAL STAMP:.......................", 0, 1)
+
+    pdf.ln(10)
+    pdf.cell(0, 6, "b). Chief / Assistant chief:",ln=True, align='L')
+    pdf.cell(0, 6, "Name of the area chief / Assistant chief:....................................................................",ln=True, align='L')
+    pdf.cell(0, 6, "Location / sub location:................................................................................................",ln=True, align='L')
+    pdf.ln(2)
+    pdf.multi_cell(0, 6, "Comment on the status of the family / parents of the applicant............................................................\n................................................................................................................................................................\n.......................................................................", 0, 0)
+    pdf.ln(2)
+    pdf.cell(0, 6, "I CERTIFY THAT THE INFORMATION GIVEN HEREIN IS TRUE",ln=True, align='L')
+    pdf.ln(3)
+    pdf.cell(0, 6, "SIGNATURE................................................", 0, 0)
+    pdf.cell(-100)
+    pdf.cell(0, 6, "DATE & OFFICIAL STAMP:.......................", 0, 1)
 
 
+    pdf.ln(20)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "PART E: FOR OFFICIAL USE BY THE POLLING STATION VETTING COMMITTEE", ln=True, align='L')
+    pdf.set_font("Times", 'B', size=12)
+    pdf.ln(4)
+    pdf.cell(0, 6, "This form was dully filled and signed:             Yes (  )         No (  )",ln=True, align='L')
+    pdf.ln(3)
+    pdf.cell(0, 6, "All support documents hav been attached:      Yes (  )         No (  )",ln=True, align='L')
+    pdf.set_font("Times", size=12)
+    pdf.ln(3)
+    pdf.cell(0, 6, "Recommended for Bursary:                                 Yes (  )         No (  )",ln=True, align='L')
+    pdf.ln(3)
+    pdf.cell(120)
+    pdf.multi_cell(0, 6, "Reasons for non recommendation\n:...................................................\n..................................................", 0, 1)
+
+
+    pdf.ln(10)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "Polling station vetting committee members", ln=True, align='L')
+    pdf.set_font("Times", size=12)
+    pdf.ln(3)
+    pdf.cell(0, 6, "Chairperson's Name:........................................  Date.....................", 0, 0)
+    pdf.cell(-80)
+    pdf.cell(0, 6, "Signature:.......................", 0, 1)
+    pdf.ln(3)
+    pdf.cell(0, 6, "Secretary's Name:............................................  Date.....................", 0, 0)
+    pdf.cell(-80)
+    pdf.cell(0, 6, "Signature:.......................", 0, 1)
+    pdf.ln(3)
+    pdf.cell(0, 6, "Member Name:............................................  Date.....................", 0, 0)
+    pdf.cell(-80)
+    pdf.cell(0, 6, "Signature:.......................", 0, 1)
+
+    pdf.ln(8)
+    pdf.set_font("Times", 'B', 14)
+    pdf.cell(0, 10, "PART F: FOR OFFICIAL USE BY THE CONSTTTUENCY EDUCATION BURSARY SUB COMMITTEE", ln=True, align='L')
+    pdf.set_font("Times", size=12)
+    pdf.ln(3)
+    pdf.cell(0, 6, "Recommended for Bursary award     (  ) ", 0, 0)
+    pdf.cell(-80)
+    pdf.cell(0, 6, "Not recommended for Bursary award     (  ) ", 0, 1)
+
+    pdf.ln(8)
+    pdf.cell(0, 6, "Bursary awarded Kshs....................... ", 0, 0)
+    pdf.cell(-80)
+    pdf.cell(0, 6, "Reasons....................................................... ", 0, 1)
+
+    pdf.ln(8)
+    pdf.cell(0, 6, "Secretary's Name....................................... ", 0, 0)
+    pdf.cell(-80)
+    pdf.cell(0, 6, "...................................................................................", 0, 1)
+    pdf.ln(8)
+    pdf.cell(0, 6, "Date.......................         Signature............................  ", 0, 0)
+    pdf.cell(-80)
+    pdf.cell(0, 6, "STAMP ....................................", 0, 1)
+
+
+
+
+        # Add context 3
+    pdf.ln(10)  # Add vertical spacing
+    pdf.set_font("Times", size=12, style='B')  # Set font size to 12 and bold for the context title
+    pdf.cell(0, 6, "KEY ATTACHMENTS TO THE FORM", ln=True)
+    pdf.cell(0, 6, "Applicants MUST attach copies of the relevant documents including the following: ", ln=True)
+    pdf.set_font("Times", size=10)  # Reset font size and style
+    supporting_documents = (
+        "1. Students' transcript/ Report Form\n"
+        "2. Photocopy of parents' / guardians National Identity Card\n"
+        "3. Photocopy of students' National Identity Card (mandatory for post school students)\n"
+        "4. Photocopy of birth certificate\n"
+        "5. Photocopy of the secondary/ college / university ID card\n"
+        "6. Parents death certificate / burial permit (mandatory for orphans)\n"
+        "7. Current fees structure (mandatory for all applicants)\n"
+        "8. Admission letters (mandatory for colleges and universities)"
+    )
+    pdf.multi_cell(0, 5, supporting_documents)
     response.write(pdf.output(dest='S').encode('latin1'))
     return response
 

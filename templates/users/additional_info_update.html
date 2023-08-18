@@ -1,0 +1,234 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+<style>
+.personal_details{
+  text-transform: uppercase;
+}
+label{
+  font-weight: 700;
+}
+#additionalInfo, #additionalInfo2,#additionalInfo3, #additionalInfo4, #additionalInfo5, #additionalInfo6 {
+  display: none;
+}
+
+</style>
+<script>
+function toggleTextarea3() {
+            var selectValue = document.getElementById("yesNoSelect3").value;
+            var textarea = document.getElementById("additionalInfo3");
+
+            if (selectValue === "yes") {
+                textarea.style.display = "block";
+            } else {
+                textarea.style.display = "none";
+            }
+        }
+
+        function toggleTextarea2() {
+            var selectValue = document.getElementById("yesNoSelect2").value;
+            var textarea = document.getElementById("additionalInfo2");
+
+            if (selectValue === "yes") {
+                textarea.style.display = "block";
+            } else {
+                textarea.style.display = "none";
+            }
+        }
+        function toggleTextarea4() {
+            var selectValue = document.getElementById("yesNoSelect4").value;
+            var textarea = document.getElementById("additionalInfo4");
+
+            if (selectValue === "yes") {
+                textarea.style.display = "block";
+            } else {
+                textarea.style.display = "none";
+            }
+        }
+
+        function toggleTextarea5() {
+            var selectValue = document.getElementById("yesNoSelect5").value;
+            var textarea = document.getElementById("additionalInfo5");
+
+            if (selectValue === "yes") {
+                textarea.style.display = "block";
+            } else {
+                textarea.style.display = "none";
+            }
+        }
+
+        function toggleTextarea6() {
+            var selectValue = document.getElementById("yesNoSelect6").value;
+            var textarea = document.getElementById("additionalInfo6");
+
+            if (selectValue === "yes") {
+                textarea.style.display = "block";
+            } else {
+                textarea.style.display = "none";
+            }
+        }
+
+
+
+        
+</script>
+<div class="personal_details">
+<div class="container mt-5">
+    <h2 class="text-center mb-5">UPADATE YOUR ADDITIONAL INFORMATION</h2>
+    <form method='post'  action='{% url "update_additional_info" %}'>
+      {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6">
+                <div class="jumbotron">
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">Why are you applying for bursary assistance?</label> <br>
+                        <p>{{ additional_info.reason }}</p>
+                        <textarea required class="form-control" name="reason" id="" cols="30" rows="5"></textarea>
+                        
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <label for="exampleInputEmail1">Have you received any financial support / bursaries from NG-CDF in the past?</label>
+                        <select class="form-control mt-2" id="receivedCDF" onchange="toggleTextarea()">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-2" id="additionalInfo">
+                            <p>{{ additional_info.prev_bursary }}</p>
+                            <label for="additionalTextarea">Specify how much and when you last received the support.</label>
+                            <textarea name="prev_bursary"  class="form-control" id="additionalTextarea1" rows="4" cols="50"></textarea>
+                    </div>
+
+
+
+                    <div class="form-group mt-4">
+                        <label for="exampleInputEmail1">Have you received any financial support bursaries from other organizations in the past? </label>
+                        <select class="form-control mt-2" id="yesNoSelect2" onchange="toggleTextarea2()">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-2" id="additionalInfo2">
+                            <p>{{ additional_info.org_bursary }}</p>
+
+                            <label for="additionalTextarea2">Please provide details.</label>
+                            <textarea name="org_bursary" class="form-control" id="additionalTextarea2" rows="4" cols="50"></textarea>
+                    </div>
+
+
+
+
+                    <div class="form-group mt-4">
+                        <label for="exampleInputEmail1">Do you suffer from any physical impairment (disability)?</label>
+                        <select class="form-control mt-2" id="yesNoSelect3" onchange="toggleTextarea3()">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-2" id="additionalInfo3">
+                        <p>{{ additional_info.disability }}</p>
+
+                            <label for="additionalTextarea3">Please provide details.</label>
+                            <textarea name="disability"  class="form-control" id="additionalTextarea3" rows="4" cols="50"></textarea>
+                    </div>
+
+
+                    <!-- <div class="form-group mt-2">
+                        <label for="exampleInputEmail1">Estimated Family income (annually Kshs.)</label>
+                        <input required type="number" min="0" class="form-control" value="{{additional_info.reason}}" name="family_income"  placeholder="Estimated Family income">
+                    </div> -->
+
+                    
+                    
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="jumbotron">
+                    
+                    <div class="form-group mt-4">
+                        <label for="exampleInputEmail1">Do you suffer from any chronic illness?</label>
+                        <select class="form-control mt-2" id="yesNoSelect4" onchange="toggleTextarea4()">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-2" id="additionalInfo4">
+                        <p>{{ additional_info.chronic_illness }}</p>
+                        
+                            <label for="additionalTextarea4">Please provide details.</label>
+                            <textarea  name="chronic_illness"  class="form-control" id="additionalTextarea4" rows="4" cols="50"></textarea>
+                    </div>
+
+
+
+                    
+                    <div class="form-group mt-4">
+                        <label for="exampleInputEmail1">Do your parents / guardians have any form of disability?</label>
+                        <select class="form-control mt-2" id="yesNoSelect5" onchange="toggleTextarea5()">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-2" id="additionalInfo5">
+                        <p>{{ additional_info.fam_disability }}</p>
+
+                            <label for="additionalTextarea3">Please provide details.</label>
+                            <textarea  class="form-control"  name="fam_disability" id="additionalTextarea5" rows="4" cols="50"></textarea>
+                    </div>
+
+                    
+                    <div class="form-group mt-4">
+                        <label for="exampleInputEmail1">Do your parents / guardians suffer from any chronic illness?</label>
+                        <select class="form-control mt-2" id="yesNoSelect6" onchange="toggleTextarea6()">
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                        </select>
+                    </div>
+                    <div class="form-group mt-2" id="additionalInfo6">
+                        <p>{{ additional_info.fam_chronic_illness }}</p>
+
+                            <label for="additionalTextarea6">Please provide details.</label>
+                            <textarea  name="fam_chronic_illness"  class="form-control" id="additionalTextarea6" rows="4" cols="50"></textarea>
+                    </div>
+
+                    <h4 class="mt-5 text-center">EDUCATION FUNDING HISTORY</h4>
+
+                    <div class="form-group mt-4">
+                        <label for="exampleInputEmail1">State the main source of funding for your education in the past as below:</label>
+
+                    <input required type="text" class="form-control mt-2" value="{{additional_info.reason}}" name='fund_secondary'  placeholder="In secondary school">
+                    <input type="text" class="form-control mt-2" value="{{additional_info.fund_college}}" name='fund_college'  placeholder="In college">
+                    <input type="text" class="form-control mt-2" value="{{additional_info.fund_uni}}" name='fund_uni'  placeholder="In the university">
+
+                        
+                      </div>
+
+                      <div class="form-group mt-4">
+                        <label for="exampleInputEmail1">Indicate other sources of funding if any?</label>
+
+                        <input type="text" class="form-control mt-2" value="{{additional_info.other_fund_secondary}}" name='other_fund_secondary'  placeholder="In secondary school">
+                        <input type="text" class="form-control mt-2" value="{{additional_info.other_fund_college}}" name='other_fund_college'  placeholder="In college">
+                        <input type="text" class="form-control mt-2" value="{{additional_info.other_fund_uni}}" name='other_fund_uni'  placeholder="In the university">
+
+                        
+                      </div>
+
+
+
+
+                </div> 
+            </div>
+        </div>
+
+        <!-- <input type="submit" value="submit"> -->
+        <button type="submit" class=" mt-3 btn btn-outline-info btn-block">Save and Proceed</button>
+    </form>
+</div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+{% endblock %}
