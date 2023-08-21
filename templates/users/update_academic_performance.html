@@ -25,7 +25,9 @@
 </script>
 <div class="personal_details">
     <div class="container mt-5">
-        <form method='post'  action='{% url "academic_performance" %}'>
+    <h2 class="text-center mb-5">Update Your Academic Performance</h2>
+
+        <form method='post'  action='{% url "update_academic_performance" %}'>
           {% csrf_token %}
         <div class="row">
             <div class="col-md-6">
@@ -41,8 +43,15 @@
 
                 </div>
                 <div class="form-group mt-4">
+                    {%if academic_performance.sent_away%}
+                        <p style='background-color:red;color:white;padding:10px'>reasons for your absence: <strong>{{academic_performance.sent_away}}</strong><br>
+                            number of weeks you stayed away from school: <strong>{{academic_performance.no_of_weeks}}</strong><br>
+                             This will be deleted.</p>
+                        
+                    {%endif%}
                     <label for="exampleInputEmail1">Have you been sent away from school?</label>
-                    <select class="form-control mt-2" id="sent_away" onchange="toggleTextarea()">
+
+                        <select class="form-control mt-2" id="sent_away" onchange="toggleTextarea()">
                         <option value="no">No</option>
                         <option value="yes">Yes</option>
                     </select>
@@ -62,27 +71,27 @@
 
                 <div class="form-group mt-4" >
                     <label for="exampleInputEmail1">Annual fees as per fees structure Kshs</label>
-                    <input required type="number" class="form-control mt-2" name='annual_fees'>
+                    <input required type="number" class="form-control mt-2" value="{{academic_performance.annual_fees}}" name='annual_fees'>
                 </div>
 
                 <div class="form-group mt-4" >
                     <label for="exampleInputEmail1">Last semester's / Term's fee balance Ksh</label>
-                    <input required type="number" class="form-control mt-2" name='last_sem_fees'>
+                    <input required type="number" class="form-control mt-2" value="{{academic_performance.last_sem_fees}}" name='last_sem_fees'>
                 </div>
 
                 <div class="form-group mt-4" >
                     <label for="exampleInputEmail1">This semester's / Term's fee balance Kshs</label>
-                    <input required type="number" class="form-control mt-2" name='current_sem_fees'>
+                    <input required type="number" class="form-control mt-2" value="{{academic_performance.current_sem_fees}}" name='current_sem_fees'>
                 </div>
 
                 <div class="form-group mt-4" >
                     <label for="exampleInputEmail1">Next semester's / Term's fee balance Ksh</label>
-                    <input required type="number" class="form-control mt-2" name='next_sem_fees'>
+                    <input required type="number" class="form-control mt-2" value="{{academic_performance.next_sem_fees}}" name='next_sem_fees'>
                 </div>
 
                 <div class="form-group mt-4" >
                     <label for="exampleInputEmail1"> Loan from HELB ( where applicable)</label>
-                    <input required type="number" class="form-control mt-2" name='helb_loan'>
+                    <input required type="number" class="form-control mt-2" value="{{academic_performance.helb_loan}}" name='helb_loan'>
                 </div>
 
                 
@@ -96,22 +105,22 @@
                         <label for="exampleInputEmail1">The student / parent /guardian should provide the names and telephone contacts of at least two reterees who
                             know the family well</label> <br>
                             <label class="mt-5" for="exampleInputEmail1">Name:</label>
-                            <input required type="text" class="form-control mt-2" name='ref_one_name'  placeholder="Name of first referee">
+                            <input required type="text" class="form-control mt-2" value="{{academic_performance.ref_one_name}}" name='ref_one_name'  placeholder="Name of first referee">
 
                             <label for="exampleInputEmail1">Address:</label>
-                            <input required type="text" class="form-control mt-2" name='ref_one_address'  placeholder="Address of first referee">
+                            <input required type="text" class="form-control mt-2" value="{{academic_performance.ref_one_address}}" name='ref_one_address'  placeholder="Address of first referee">
 
                             <label for="exampleInputEmail1">Telephone Number:</label>
-                            <input required type="text" class="form-control mt-2" name='ref_one_number'  placeholder="Telephone Number of first referee">
+                            <input required type="text" class="form-control mt-2" value="{{academic_performance.ref_one_number}}" name='ref_one_number'  placeholder="Telephone Number of first referee">
 
                             <label class="mt-5" for="exampleInputEmail1">Name:</label>
-                            <input required type="text" class="form-control mt-2" name='ref_two_name'  placeholder="Name of second referee">
+                            <input required type="text" class="form-control mt-2" value="{{academic_performance.ref_two_name}}" name='ref_two_name'  placeholder="Name of second referee">
 
                             <label for="exampleInputEmail1">Address:</label>
-                            <input required type="text" class="form-control mt-2" name='ref_two_address'  placeholder="Address of second referee">
+                            <input required type="text" class="form-control mt-2" value="{{academic_performance.ref_two_address}}" name='ref_two_address'  placeholder="Address of second referee">
 
                             <label for="exampleInputEmail1">Telephone Number:</label>
-                            <input required type="text" class="form-control mt-2" name='ref_two_number'  placeholder="Telephone Number of second referee">
+                            <input required type="text" class="form-control mt-2" value="{{academic_performance.ref_two_number}}" name='ref_two_number'  placeholder="Telephone Number of second referee">
                     </div>
                 </div>
             </div>

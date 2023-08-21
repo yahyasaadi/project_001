@@ -1,0 +1,216 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+<style>
+.personal_details{
+  text-transform: uppercase;
+}
+label{
+  font-weight: 700;
+}
+</style>
+
+<div class="personal_details">
+<div class="container mt-5">
+  <h1 class="text-center">Update Your Family Background</h1>
+    <form method='post'  action='{% url "update_family_background" %}'>
+      {% csrf_token %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="jumbotron">
+                <div class="form-group">
+                    <label for="exampleInputEmail1">family status</label> <br> <p>{{family_background.family_status}}</p>
+                    <input required type="radio" name='family_status' value= 'both_parents_dead'> Both Parents Dead<br>
+                    <input required type="radio" name='family_status' value= 'one_parent_dead'> One Parent Dead<br>
+                    <input required type="radio" name='family_status' value= 'both_parents_alive'> Both Parents Alive<br>
+                    <input required type="radio" name='family_status' value= 'single_parent'> Single Parent<br>
+                    <input required type="radio" name='family_status' value= 'others'> Others <br>
+                    
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Number Siblings</label>
+                    <input required type="number" value="{{family_background.number_siblings}}" min="0" class="form-control" name="number_siblings"  placeholder="Number Siblings">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Estimated Family income (annually Kshs.)</label>
+                    <input required type="number" min="0" class="form-control" value="{{family_background.family_income}}" name="family_income"  placeholder="Estimated Family income">
+                  </div>
+
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Estimated Family expense (annually Kshs.)</label>
+                    <input required type="number" min="0" class="form-control" value="{{family_background.family_expense}}" name="family_expense"  placeholder="Estimated Family expense">
+                  </div>
+                  <div class="form-group mt-2">
+                    <h3><br> Father</h3>
+                    <label for="exampleInputEmail1">Full Name</label>
+                    <input required type="text" class="form-control" value="{{family_background.father_name}}" name="father_name"  placeholder="Full Name">
+                  </div>
+                  <div class="form-group mt-2">
+                    
+                    <label for="exampleInputEmail1">Address</label>
+                    <input required type="text" class="form-control" value="{{family_background.father_address}}" name="father_address"  placeholder="Address">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Telephone Number</label>
+                    <input required type="text" class="form-control" value="{{family_background.father_mobile_no}}" name="father_mobile_no"  placeholder="Telephone Number">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Occupation</label>
+                    <input required type="text" class="form-control" value="{{family_background.father_occupation}}" name="father_occupation"  placeholder="Occupation">
+                  </div>
+
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Type of employment</label> <br>
+                    <input required type="radio" name='father_type_of_employment' value= 'permanent'> Permanent<br>
+                    <input required type="radio" name='father_type_of_employment' value= 'contractual'> Contractual<br>
+                    <input required type="radio" name='father_type_of_employment' value= 'casual'> Casual<br>
+                    <input required type="radio" name='father_type_of_employment' value= 'retired'> Retired<br>
+                    <input required type="radio" name='father_type_of_employment' value= 'self_employed'> Self Employed <br>
+                    <input required type="radio" name='father_type_of_employment' value= 'none'> None <br>
+                    
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Father main source of income</label>
+                    <input required type="text" class="form-control" value="{{family_background.father_main_source_of_income}}" name="father_main_source_of_income"  placeholder="Father main source of income">
+                  </div>
+                  
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="jumbotron">
+              <div class="form-group">
+                <h3><br> Mother</h3>
+                <label for="exampleInputEmail1">Full Name</label>
+                <input required type="text" class="form-control" value="{{family_background.mother_full_name}}" name="mother_full_name"  placeholder="Full Name">
+              </div>
+              <div class="form-group mt-2">
+                
+                <label for="exampleInputEmail1">Address</label>
+                <input required type="text" class="form-control" value="{{family_background.mother_address}}" name="mother_address"  placeholder="Address">
+              </div>
+              <div class="form-group mt-2">
+                <label for="exampleInputEmail1">Telephone Number</label>
+                <input required type="text" class="form-control" value="{{family_background.mother_telephone_number}}" name="mother_telephone_number"  placeholder="Telephone Number">
+              </div>
+              <div class="form-group mt-2">
+                <label for="exampleInputEmail1">Occupation</label>
+                <input required type="text" class="form-control" value="{{family_background.mother_occupation}}" name="mother_occupation"  placeholder="Occupation">
+              </div>
+              
+              <div class="form-group mt-2">
+                <label for="exampleInputEmail1">Type of employment</label> <br>
+                <input required type="radio" name='mother_type_of_employment' value= 'permanent'> Permanent<br>
+                <input required type="radio" name='mother_type_of_employment' value= 'contractual'> Contractual<br>
+                <input required type="radio" name='mother_type_of_employment' value= 'casual'> Casual<br>
+                <input required type="radio" name='mother_type_of_employment' value= 'retired'> Retired<br>
+                <input required type="radio" name='mother_type_of_employment' value= 'self_employed'> Self Employed <br>
+                <input required type="radio" name='mother_type_of_employment' value= 'none'> None <br>
+                
+              </div>
+              <div class="form-group mt-2">
+                <label for="exampleInputEmail1">Mother main source of income</label>
+                <input required type="text" class="form-control" value="{{family_background.mother_main_source_of_income}}" name="mother_main_source_of_income"  placeholder="Mother main source of income">
+              </div>
+<!-- 
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1"></label>
+                    <input required type="text" class="form-control" value="{{family_background.number_siblings}}" name=""  placeholder="">
+                  </div>
+                   -->
+                   <div class="form-group">
+                    <h3><br> Guardian</h3>
+                    <label for="exampleInputEmail1">Full Name</label>
+                    <input required type="text" class="form-control" value="{{family_background.guardian_full_name}}" name="guardian_full_name"  placeholder="Full Name">
+                  </div>
+                  <div class="form-group mt-2">
+                    
+                    <label for="exampleInputEmail1">Address</label>
+                    <input required type="text" class="form-control" value="{{family_background.guardian_address}}" name="guardian_address"  placeholder="Address">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Telephone Number</label>
+                    <input required type="text" class="form-control" value="{{family_background.guardian_telephone_number}}" name="guardian_telephone_number"  placeholder="Telephone Number">
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Occupation</label>
+                    <input required type="text" class="form-control" value="{{family_background.guardian_occupation}}" name="guardian_occupation"  placeholder="Occupation">
+                  </div>
+                  
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Type of employment</label> <br>
+                    <input required type="radio" name='guardian_type_of_employment' value= 'permanent'> Permanent<br>
+                    <input required type="radio" name='guardian_type_of_employment' value= 'contractual'> Contractual<br>
+                    <input required type="radio" name='guardian_type_of_employment' value= 'casual'> Casual<br>
+                    <input required type="radio" name='guardian_type_of_employment' value= 'retired'> Retired<br>
+                    <input required type="radio" name='guardian_type_of_employment' value= 'self_employed'> Self Employed <br>
+                    <input required type="radio" name='guardian_type_of_employment' value= 'none'> None <br>
+                    
+                  </div>
+                  <div class="form-group mt-2">
+                    <label for="exampleInputEmail1">Guardian main source of income</label>
+                    <input required type="text" class="form-control" value="{{family_background.guardian_main_source_of_income}}" name="guardian_main_source_of_income"  placeholder="Guardian main source of income">
+                  </div>
+                  
+            </div>
+        </div>
+    </div>
+    <!-- <div class="row">
+        <div class="col-md-6">
+            <div class="jumbotron">
+                <h1>Row 2</h1>
+                <p>This is the content for the second row.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="jumbotron">
+                <h1>Row 2</h1>
+                <p>This is the content for the second row.</p>
+            </div>
+        </div>
+    </div> -->
+    <div class="table-responsive">
+      <table class="table">
+            <p>All the Siblings will be Deleted. Write a fresh using the button 'Add Sibling' bellow</p>
+            <thead>
+              <tr>
+                  <th>S/No.</th>
+                  <th>Name</th>
+                  <th>Type of Institution</th>
+                  <th>Annual Fees Payable (Kshs)</th>
+                  <th></th>
+              </tr>
+          </thead>
+          <tbody id="form-container">
+            <!-- Dynamically added input rows will appear here -->
+
+            {% for sibling in siblings %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><p>{{ sibling.sibling_name }}</p></td>
+                <td>
+                  <p>{{ sibling.institution }}</p>
+                </td>
+                <td>
+                  <p>{{ sibling.fees }}</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        
+      </table>
+  </div>
+  <div class="form-row mt-3">
+      <div class="col">
+          <button type="button" id="btn-add" class="btn btn-primary">Add Sibling</button>
+      </div>
+      
+  </div>
+    <button type="submit" class=" mt-3 btn btn-outline-info btn-block">Save and Proceed</button>
+</div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+{% endblock %}

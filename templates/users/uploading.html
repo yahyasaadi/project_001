@@ -1,0 +1,61 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+<div class="container mt-5">
+    <h3 class="text-center">You are Applying For {{last_application.name_of_application}}</h3> 
+    <form method='post'  action='{% url "apply" %}' enctype="multipart/form-data">
+        {% csrf_token %}
+      <div class="row">
+          <div class="col-md-12">
+                <div class="jumbotron">
+                    <div class="form-group mt-3">
+                        <label for="exampleInputEmail1">ID Number</label>
+                        <input type="file" class="form-control mt-2" name='id_card'>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="exampleInputEmail1">Transcript or Report Form</label>
+                        <input required type="file" class="form-control mt-2" name='transcript_report_form'>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="exampleInputEmail1">Parent or Guardians ID Card</label>
+                        <input type="file" class="form-control mt-2" name='parents_guardians_id_card'>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="exampleInputEmail1">Students ID Card</label>
+                        <input type="file" class="form-control mt-2" name='students_id_card'>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="exampleInputEmail1">Birth Certificate</label>
+                        <input type="file" class="form-control mt-2" name='birth_certificate'>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="exampleInputEmail1">Parents Death Certificate</label>
+                        <input type="file" class="form-control mt-2" name='parents_death_certificate'>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="exampleInputEmail1">Fees Structure</label>
+                        <input required type="file" class="form-control mt-2" name='fees_structure'>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="exampleInputEmail1">Admission Letters</label>
+                        <input type="file" class="form-control mt-2" name='admission_letters'>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="exampleInputEmail1">CDF Application form for {{owner.name}}</label>
+                        <input required type="file" class="form-control mt-2" name='verification_document'>
+                    </div>
+                    <div class="form-group mt-3">
+                        <button type="submit" class=" mt-3 btn btn-outline-info btn-block">Save and Proceed</button>
+                    </div>
+
+                </div>
+          </div>
+      </div>
+    </form>
+</div>
+        
+{%endblock%}
