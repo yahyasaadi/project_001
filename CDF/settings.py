@@ -132,6 +132,9 @@ LOGIN_URL = 'signin'
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
+
 EMAIL_USE_TLS = False
 EMAIL_HOST = 'mail.seasom.org' 
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')

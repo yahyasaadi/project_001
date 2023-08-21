@@ -1,6 +1,586 @@
-{% extends 'users/staffNav.html' %}
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>{{ owner.name }} Online CDF Application</title>
+    <link rel="shortcut icon" href="{% static 'images/overall.jpg' %}" type="image/x-icon">
 
-{% block content %}
-     <h2>Dear {{ fname }}, Welcome to staff page</h2>
-{% endblock %}
+     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:300,600" />
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.selectric/1.10.1/selectric.css">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css">
+</head>
+<style>
+     @import "https://s3-us-west-2.amazonaws.com/s.cdpn.io/584938/dashboard.scss";
+ body {
+	 background-color: #1b2431;
+	 color: #202020;
+	 font-family: "Montserrat", "Helvetica", "Open Sans", "Arial";
+	 font-size: 13px;
+}
+ a:hover {
+	 text-decoration: none;
+}
+ p, figure {
+	 margin: 0;
+	 padding: 0;
+}
+ .navbar {
+	 background-color: #1b2431;
+}
+ .sidebar {
+	 background-color: #1b2431;
+	 box-shadow: none;
+}
+ .sidebar .nav-link {
+	 border-left: 5px solid transparent;
+	 color: #738297;
+	 padding: 0.5rem 0.75rem;
+}
+ .sidebar .nav-link:hover {
+	 color: white;
+}
+ .sidebar .nav-link.active {
+	 border-left: 5px solid #738297;
+	 color: white;
+}
+ .sidebar .zmdi {
+	 display: inline-block;
+	 font-size: 1.35rem;
+	 margin-right: 5px;
+	 min-width: 25px;
+}
+ .card-list {
+	 width: 100%;
+}
+ .card-list:before, .card-list:after {
+	 content: " ";
+	 display: table;
+}
+ .card-list:after {
+	 clear: both;
+}
+ .card {
+	 border-radius: 8px;
+	 color: white;
+	 padding: 10px;
+	 position: relative;
+}
+ .card .zmdi {
+	 color: white;
+	 font-size: 28px;
+	 opacity: 0.3;
+	 position: absolute;
+	 right: 13px;
+	 top: 13px;
+}
+ .card .stat {
+	 border-top: 1px solid rgba(255, 255, 255, 0.3);
+	 font-size: 8px;
+	 margin-top: 25px;
+	 padding: 10px 10px 0;
+	 text-transform: uppercase;
+}
+ .card .title {
+	 display: inline-block;
+	 font-size: 8px;
+	 padding: 10px 10px 0;
+	 text-transform: uppercase;
+}
+ .card .value {
+	 font-size: 28px;
+	 padding: 0 10px;
+}
+ .card.blue {
+	 background-color: #2298f1;
+}
+ .card.green {
+	 background-color: #66b92e;
+}
+ .card.orange {
+	 background-color: #da932c;
+}
+ .card.red {
+	 background-color: #d65b4a;
+}
+ .projects {
+	 background-color: #273142;
+	 border: 1px solid #313d4f;
+	 overflow-x: auto;
+	 width: 100%;
+}
+ .projects-inner {
+	 border-radius: 4px;
+}
+ .projects-header {
+	 color: white;
+	 padding: 22px;
+}
+ .projects-header .count, .projects-header .title {
+	 display: inline-block;
+}
+ .projects-header .count {
+	 color: #738297;
+}
+ .projects-header .zmdi {
+	 cursor: pointer;
+	 float: right;
+	 font-size: 16px;
+	 margin: 5px 0;
+}
+ .projects-header .title {
+	 font-size: 21px;
+}
+ .projects-header .title + .count {
+	 margin-left: 5px;
+}
+ .projects-table {
+	 background: #273142;
+	 width: 100%;
+}
+ .projects-table td, .projects-table th {
+	 color: white;
+	 padding: 10px 22px;
+	 vertical-align: middle;
+}
+ .projects-table td p {
+	 font-size: 12px;
+}
+ .projects-table td p:last-of-type {
+	 color: #f7f8f8;
+	 font-size: 11px;
+}
+ .projects-table th {
+	 background-color: #313d4f;
+}
+ .projects-table tr:hover {
+	 background-color: #303d52;
+}
+ .projects-table tr:not(:last-of-type) {
+	 border-bottom: 1px solid #313d4f;
+}
+ .projects-table .member figure, .projects-table .member .member-info {
+	 display: inline-block;
+	 vertical-align: top;
+}
+ .projects-table .member figure + .member-info {
+	 margin-left: 7px;
+}
+ .projects-table .member img {
+	 border-radius: 50%;
+	 height: 32px;
+	 width: 32px;
+}
+ .projects-table .status > form {
+	 float: right;
+}
+ .projects-table .status-text {
+	 display: inline-block;
+	 font-size: 12px;
+	 margin: 11px 0;
+	 padding-left: 20px;
+	 position: relative;
+}
+ .projects-table .status-text:before {
+	 border: 3px solid;
+	 border-radius: 50%;
+	 content: "";
+	 height: 14px;
+	 left: 0;
+	 position: absolute;
+	 top: 1px;
+	 width: 14px;
+}
+ .projects-table .status-text.status-blue:before {
+	 border-color: #1c93ed;
+}
+ .projects-table .status-text.status-green:before {
+	 border-color: #66b92e;
+}
+ .projects-table .status-text.status-orange:before {
+	 border-color: #da932c;
+}
+ .projects-table .status-text.status-red:before {
+	 border-color: #d65b4a;
+}
+ .selectric {
+	 background-color: transparent;
+	 border-color: #313d4f;
+	 border-radius: 4px;
+}
+ .selectric .label {
+	 color: #738297;
+	 line-height: 34px;
+	 margin-right: 10px;
+	 text-align: left;
+}
+ .selectric-wrapper {
+	 float: right;
+	 width: 150px;
+}
+ .chart {
+	 border-radius: 3px;
+	 border: 1px solid #313d4f;
+	 color: white;
+	 padding: 10px;
+	 position: relative;
+	 text-align: center;
+}
+ .chart canvas {
+	 height: 400px;
+	 margin: 20px 0;
+	 width: 100%;
+}
+ .chart .actions {
+	 margin: 15px;
+	 position: absolute;
+	 right: 0;
+	 top: 0;
+}
+ .chart .actions span {
+	 cursor: pointer;
+	 display: inline-block;
+	 font-size: 20px;
+	 margin: 5px;
+	 padding: 4px;
+}
+ .chart .actions .btn-link {
+	 color: white;
+}
+ .chart .actions .btn-link i {
+	 font-size: 1.75rem;
+}
+ .chart .title {
+	 font-size: 18px;
+	 margin: 0;
+	 padding: 15px 0 5px;
+}
+ .chart .title + .tagline {
+	 margin-top: 10px;
+}
+ .chart .tagline {
+	 font-size: 12px;
+}
+ .danger-item {
+	 border-left: 4px solid #a84d43;
+}
+ .zmdi {
+	 line-height: 1;
+	 vertical-align: middle;
+}
+ 
+</style>
+
+<body>
+     {% for message in messages %}
+    <div id='messages_to_be_deleted' class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <strong>Message:</strong> {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endfor %}
+     <nav class="navbar navbar-dark sticky-top flex-md-nowrap p-0">
+          <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="{% url 'staff_dashboard' %}">{{ owner.name }} Admin Panel</a>
+          <ul class="navbar-nav px-3">
+               <li class="nav-item text-nowrap">
+                    <a class="nav-link" href="{% url 'signout' %}">Sign out</a>
+               </li>
+          </ul>
+     </nav>
+     <div class="container-fluid">
+          <div class="row">
+               <nav class="col-md-2 d-none d-md-block sidebar">
+                    <div class="sidebar-sticky">
+                         <ul class="nav flex-column">
+                              <li class="nav-item">
+                                   <a class="nav-link active" href="{% url 'staff_dashboard' %}">
+                       <i class="zmdi zmdi-widgets"></i>
+                       Dashboard <span class="sr-only">(current)</span>
+                     </a>
+                              </li>
+                              <li class="nav-item">
+                                   <a class="nav-link" href="{% url 'list_of_applicants'%}">
+                       <i class="zmdi zmdi-file-text"></i>
+                       Applications
+                     </a>
+                              </li>
+                              <!-- <li class="nav-item">
+                                   <a class="nav-link" href="#">
+                       <i class="zmdi zmdi-shopping-cart"></i>
+                       Products
+                     </a> -->
+                              </li>
+                              <li class="nav-item">
+                                   <a class="nav-link" href="{% url 'orphans_or_disability' %}">
+                       <i class="zmdi zmdi-accounts"></i>
+                       Orphans Or Disabilities
+                     </a>
+                     <li class="nav-item">
+                         <a class="nav-link" href="{% url 'returning_applicants'%}">
+             <i class="zmdi zmdi-accounts"></i>
+             Returning Applicants
+           </a>
+                              </li>
+                              <li class="nav-item">
+                                   <a class="nav-link" href="#">
+                       <i class="zmdi zmdi-chart"></i>
+                       Reports
+                     </a>
+                              </li>
+                              <li class="nav-item">
+                                   <a class="nav-link" href="#">
+                       <i class="zmdi zmdi-layers"></i>
+                       Integrations
+                     </a>
+                              </li>
+                         </ul>
+     
+                         <h6 class="sidebar-heading d-flex justify-content-between align-items-center pl-3 mt-4 mb-1 text-muted">
+                              <span>Saved reports</span>
+                              <a class="d-flex align-items-center text-muted" href="#">
+                                   <i class="zmdi zmdi-plus-circle-o"></i>
+                              </a>
+                         </h6>
+                         <ul class="nav flex-column mb-2">
+                              <li class="nav-item">
+                                   <a class="nav-link" href="#">
+                       <i class="zmdi zmdi-file-text"></i>
+                       Current month
+                     </a>
+                              </li>
+                              <li class="nav-item">
+                                   <a class="nav-link" href="#">
+                       <i class="zmdi zmdi-file-text"></i>
+                       Last quarter
+                     </a>
+                              </li>
+                              <li class="nav-item">
+                                   <a class="nav-link" href="#">
+                       <i class="zmdi zmdi-file-text"></i>
+                       Social engagement
+                     </a>
+                              </li>
+                              <li class="nav-item">
+                                   <a class="nav-link" href="#">
+                       <i class="zmdi zmdi-file-text"></i>
+                       Year-end sale
+                     </a>
+                              </li>
+                         </ul>
+                    </div>
+               </nav>
+               <main role="main" class="col-md-9 ml-sm-auto col-lg-10 my-3">
+                    <div class="card-list">
+                         <div class="row">
+                              <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                                   <div class="card blue" style="padding: 20px;">
+                                        <p>Name Of Application:</p>
+                                        <p> <u> <strong>{{application.name_of_application}}</strong></u> <br><br></p>
+                                        <p>Starting Date: {{application.start_date}}</p>
+                                        <p>Ending Date: {{application.end_date}}</p>
+
+                                        
+                                   </div>
+                              </div>
+                              <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                                   <div class="card green">
+                                        <div class="title">number of applicants</div>
+                                        <div class="value">{{application.number_of_applicant}}</div>
+                                   </div>
+                              </div>
+                              <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                                   <div class="card orange">
+                                        <div class="title">Funds Allocated for Secondary School</div>
+                                        <div id="sec_alloc" class="value">Kshs. {{funds_available_for_secondary_schools}}</div>
+                                        <p id="remaining_secondary_funds">Remaining Amount:</p>
+
+
+                                   </div>
+                              </div>
+                              <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                                   <div class="card red">
+                                        <div class="title">Funds Allocated for Higher Institutions</div>
+                                        <div id="high_alloc" class="value">Kshs. {{funds_available_for_universities}}</div>
+                                        <p id="remaining_higher_education_funds">Remaining Amount:</p>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+
+                    <div class="card-list">
+                         <div class="row">
+                              <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                                   <div class="card blue" style="padding: 20px;">
+                                        <p>Number of Approved Applicants</p>
+                                        <p><br>{{approved_applicants_count}}</p>
+                                   </div>
+                              </div>
+                              <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                                   <div class="card green">
+                                        <div class="title">Funds Awarded</div>
+                                        <div class="value">{{approved_sum}}</div>
+                                   </div>
+                              </div>
+                              <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                                   <div class="card orange">
+                                        <div class="title">Funds Awared To Secondary School</div>
+                                        <div id="appr_sec" class="value">Kshs. {{approved_sum_secondary}}</div>
+                                   </div>
+                              </div>
+                              <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
+                                   <div class="card red">
+                                        <div class="title">Funds Available To Higher Institutions</div>
+                                        <div id="appr_high" class="value">Kshs. {{approved_sum_higher_education}}</div>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+
+                    <div class="projects mb-4">
+                         <div class="projects-inner">
+                              <header class="projects-header">
+                                   <div class="title">List of Approved Applicants</div>
+                                   <div class="count">| {{approved_applicants_count}}</div>
+                              </header>
+                              <table class="projects-table">
+                                   <thead>
+                                        <tr>
+                                             <th>Full Name</th>
+                                             <th>Gender</th>
+                                             <th>Institution</th>
+                                             <th>Requested Amount</th>
+                                             <th>Awarded Amount</th>
+                                             <th>Funds For</th>
+                                             <th>View Profile</th>
+                                        </tr>
+                                   </thead>
+                                   <tr>
+                                   {% if approved_users_personal_details %}
+                                   {% for approved_applicant, funds_awarded in zipped_data %}
+                                        <tr class="danger-item">
+                                             <td>
+                                                  <p>{{approved_applicant.fullname}}</p>
+                                                  <!-- <p>Mother's Name </p> -->
+                                             </td>
+                                             <td style="text-transform: capitalize;">
+                                                  <p>{{approved_applicant.gender}}</p>
+                                             </td>
+                                             <td >
+                                                  
+                                                       <p>{{approved_applicant.institution}}</p>
+                                                  
+                                             </td>
+                                             <td>
+                                                  <p>{{approved_applicant.ammount_requesting}}</p>
+                                             </td>
+                                             <td class="status">
+                                                  Kshs. {{ funds_awarded.awarded }}
+                                             </td>
+                                             <td class="status">
+                                                  {{ funds_awarded.funds_for }}
+                                             </td>
+                                             <td>
+                                                  <a href="{% url 'user_profile' approved_applicant.user_id %}">View Profile</a>
+                                             </td>
+                                        
+                                        </tr>
+                                        {% endfor %}
+                                   {% endif %}
+                                   
+                              </table>
+                         </div>
+                    </div>
+
+                    <div class="projects mb-4">
+                         <div class="projects-inner">
+                              <header class="projects-header">
+                                   <div class="title">List of Applicants</div>
+                                   <div class="count">| {{application.number_of_applicant}}</div>
+                              </header>
+                              <table class="projects-table">
+                                   <thead>
+                                        <tr>
+                                             <th>Full Name</th>
+                                             <th>Gender</th>
+                                             <th>Institution</th>
+                                             <th>Campus / Branch </th>
+                                             <th>Requested Amount</th>
+                                             <th>Status</th>
+                                             <th>View Profile</th>
+                                        </tr>
+                                   </thead>
+                                   <tr>
+                                   {% if approved_users_personal_details %}
+                                   {% for approved_applicant, funds_awarded in zipped_data_2 %}
+                                        <tr class="danger-item">
+                                             <td>
+                                                  <p>{{approved_applicant.fullname}}</p>
+                                                  <!-- <p>Mother's Name </p> -->
+                                             </td>
+                                             <td style="text-transform: capitalize;">
+                                                  <p>{{approved_applicant.gender}}</p>
+                                             </td>
+                                             <td >
+                                                  
+                                                  <p>{{approved_applicant.institution}}</p>
+                                                  
+                                             </td>
+                                             <td>
+                                                  <p>{{approved_applicant.campus_or_branch}}</p>
+                                             </td>
+                                             <td>
+                                                  <p>{{approved_applicant.ammount_requesting}}</p>
+                                             </td>
+                                             <td class="status">
+                                                  {{ funds_awarded.application_status }}
+                                             </td>
+                                             <td>
+                                                  <a href="{% url 'user_profile' approved_applicant.user_id %}">View Profile</a>
+                                             </td>
+                                        
+                                        </tr>
+                                        {% endfor %}
+                                   {% endif %}
+                                   
+                              </table>
+                         </div>
+                    </div>
+                    
+               </main>
+          </div>
+     </div>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/jquery.selectric/1.10.1/jquery.selectric.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
+     <script>
+          // Get values from the elements
+        const appr_sec = document.getElementById('appr_sec').innerText;
+        const appr_high = document.getElementById('appr_high').innerText;
+        const high_alloc = document.getElementById('high_alloc').innerText;
+        const sec_alloc = document.getElementById('sec_alloc').innerText;
+
+        const appr_high1 = parseInt(appr_high.replace(/[^0-9]/g, ''), 10);
+        const appr_sec1 = parseInt(appr_sec.replace(/[^0-9]/g, ''), 10);
+        const high_alloc1 = parseInt(high_alloc.replace(/[^0-9]/g, ''), 10);
+        const sec_alloc1 = parseInt(sec_alloc.replace(/[^0-9]/g, ''), 10);
+
+        // Calculate remaining funds
+        const remaining_higher_education_funds = high_alloc1 - appr_high1;
+        const remaining_secondary_funds = sec_alloc1 - appr_sec1;
+
+        // Update remaining funds in the corresponding elements
+        document.getElementById('remaining_higher_education_funds').innerText = 'Remaining Amount: Kshs. '+ remaining_higher_education_funds;
+        document.getElementById('remaining_secondary_funds').innerText = 'Remaining Amount: Kshs. '+ remaining_secondary_funds;
+
+        console.log(appr_high);
+        console.log(remaining_secondary_funds);
+
+     </script>
+
+</body>
+</html>

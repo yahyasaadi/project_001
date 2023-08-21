@@ -85,8 +85,7 @@ function toggleTextarea3() {
                 <div class="jumbotron">
                     <div class="form-group">
                         <label for="exampleInputEmail1">Why are you applying for bursary assistance?</label> <br>
-                        <p>{{ additional_info.reason }}</p>
-                        <textarea required class="form-control" name="reason" id="" cols="30" rows="5"></textarea>
+                        <textarea required class="form-control" name="reason" id="" cols="30" rows="5">{{ additional_info.reason }}</textarea>
                         
                     </div>
 
@@ -98,9 +97,9 @@ function toggleTextarea3() {
                         </select>
                     </div>
                     <div class="form-group mt-2" id="additionalInfo">
-                            <p>{{ additional_info.prev_bursary }}</p>
+                            
                             <label for="additionalTextarea">Specify how much and when you last received the support.</label>
-                            <textarea name="prev_bursary"  class="form-control" id="additionalTextarea1" rows="4" cols="50"></textarea>
+                            <textarea name="prev_bursary"  class="form-control" id="additionalTextarea1" rows="4" cols="50">{{ additional_info.prev_bursary }}</textarea>
                     </div>
 
 
@@ -113,10 +112,10 @@ function toggleTextarea3() {
                         </select>
                     </div>
                     <div class="form-group mt-2" id="additionalInfo2">
-                            <p>{{ additional_info.org_bursary }}</p>
+
 
                             <label for="additionalTextarea2">Please provide details.</label>
-                            <textarea name="org_bursary" class="form-control" id="additionalTextarea2" rows="4" cols="50"></textarea>
+                            <textarea name="org_bursary" class="form-control" id="additionalTextarea2" rows="4" cols="50">{{ additional_info.org_bursary }}</textarea>
                     </div>
 
 
@@ -130,10 +129,10 @@ function toggleTextarea3() {
                         </select>
                     </div>
                     <div class="form-group mt-2" id="additionalInfo3">
-                        <p>{{ additional_info.disability }}</p>
+
 
                             <label for="additionalTextarea3">Please provide details.</label>
-                            <textarea name="disability"  class="form-control" id="additionalTextarea3" rows="4" cols="50"></textarea>
+                            <textarea name="disability"  class="form-control" id="additionalTextarea3" rows="4" cols="50">{{ additional_info.disability }}</textarea>
                     </div>
 
 
@@ -157,10 +156,10 @@ function toggleTextarea3() {
                         </select>
                     </div>
                     <div class="form-group mt-2" id="additionalInfo4">
-                        <p>{{ additional_info.chronic_illness }}</p>
+
                         
                             <label for="additionalTextarea4">Please provide details.</label>
-                            <textarea  name="chronic_illness"  class="form-control" id="additionalTextarea4" rows="4" cols="50"></textarea>
+                            <textarea  name="chronic_illness"  class="form-control" id="additionalTextarea4" rows="4" cols="50">{{ additional_info.chronic_illness }}</textarea>
                     </div>
 
 
@@ -174,10 +173,9 @@ function toggleTextarea3() {
                         </select>
                     </div>
                     <div class="form-group mt-2" id="additionalInfo5">
-                        <p>{{ additional_info.fam_disability }}</p>
 
                             <label for="additionalTextarea3">Please provide details.</label>
-                            <textarea  class="form-control"  name="fam_disability" id="additionalTextarea5" rows="4" cols="50"></textarea>
+                            <textarea  class="form-control"  name="fam_disability" id="additionalTextarea5" rows="4" cols="50">{{ additional_info.fam_disability }}</textarea>
                     </div>
 
                     
@@ -189,10 +187,10 @@ function toggleTextarea3() {
                         </select>
                     </div>
                     <div class="form-group mt-2" id="additionalInfo6">
-                        <p>{{ additional_info.fam_chronic_illness }}</p>
+
 
                             <label for="additionalTextarea6">Please provide details.</label>
-                            <textarea  name="fam_chronic_illness"  class="form-control" id="additionalTextarea6" rows="4" cols="50"></textarea>
+                            <textarea  name="fam_chronic_illness"  class="form-control" id="additionalTextarea6" rows="4" cols="50">{{ additional_info.fam_chronic_illness }}</textarea>
                     </div>
 
                     <h4 class="mt-5 text-center">EDUCATION FUNDING HISTORY</h4>

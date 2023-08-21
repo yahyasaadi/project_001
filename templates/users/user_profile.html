@@ -1,0 +1,845 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>{{ owner.name }} Online CDF Application</title>
+    <link rel="shortcut icon" href="{% static 'images/overall.jpg' %}" type="image/x-icon">
+
+     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:300,600" />
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.selectric/1.10.1/selectric.css">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css">
+</head>
+<style>
+     @import "https://s3-us-west-2.amazonaws.com/s.cdpn.io/584938/dashboard.scss";
+ body {
+	 background-color: #1b2431;
+	 color: #202020;
+	 font-family: "Montserrat", "Helvetica", "Open Sans", "Arial";
+	 font-size: 13px;
+}
+ a:hover {
+	 text-decoration: none;
+}
+ p, figure {
+	 margin: 0;
+	 padding: 0;
+}
+ .navbar {
+	 background-color: #1b2431;
+}
+ .sidebar {
+	 background-color: #1b2431;
+	 box-shadow: none;
+}
+ .sidebar .nav-link {
+	 border-left: 5px solid transparent;
+	 color: #738297;
+	 padding: 0.5rem 0.75rem;
+}
+ .sidebar .nav-link:hover {
+	 color: white;
+}
+ .sidebar .nav-link.active {
+	 border-left: 5px solid #738297;
+	 color: white;
+}
+ .sidebar .zmdi {
+	 display: inline-block;
+	 font-size: 1.35rem;
+	 margin-right: 5px;
+	 min-width: 25px;
+}
+ .card-list {
+	 width: 100%;
+}
+ .card-list:before, .card-list:after {
+	 content: " ";
+	 display: table;
+}
+ .card-list:after {
+	 clear: both;
+}
+h3{
+    color: white;
+}
+ .card {
+	 border-radius: 8px;
+	 color: white;
+	 padding: 10px;
+	 position: relative;
+}
+ .card .zmdi {
+	 color: white;
+	 font-size: 28px;
+	 opacity: 0.3;
+	 position: absolute;
+	 right: 13px;
+	 top: 13px;
+}
+ .card .stat {
+	 border-top: 1px solid rgba(255, 255, 255, 0.3);
+	 font-size: 8px;
+	 margin-top: 25px;
+	 padding: 10px 10px 0;
+	 text-transform: uppercase;
+}
+ .card .title {
+	 display: inline-block;
+	 font-size: 8px;
+	 padding: 10px 10px 0;
+	 text-transform: uppercase;
+}
+ .card .value {
+	 font-size: 28px;
+	 padding: 0 10px;
+}
+ .card.blue {
+	 background-color: #2298f1;
+}
+ .card.green {
+	 background-color: #66b92e;
+}
+ .card.orange {
+	 background-color: #da932c;
+}
+ .card.red {
+	 background-color: #d65b4a;
+}
+ .projects {
+	 background-color: #273142;
+	 border: 1px solid #313d4f;
+	 overflow-x: auto;
+	 width: 100%;
+}
+ .projects-inner {
+	 border-radius: 4px;
+}
+ .projects-header {
+	 color: white;
+	 padding: 22px;
+}
+ .projects-header .count, .projects-header .title {
+	 display: inline-block;
+}
+ .projects-header .count {
+	 color: #738297;
+}
+ .projects-header .zmdi {
+	 cursor: pointer;
+	 float: right;
+	 font-size: 16px;
+	 margin: 5px 0;
+}
+ .projects-header .title {
+	 font-size: 21px;
+}
+ .projects-header .title + .count {
+	 margin-left: 5px;
+}
+ .projects-table {
+	 background: #273142;
+	 width: 100%;
+}
+ .projects-table td, .projects-table th {
+	 color: white;
+	 padding: 10px 22px;
+	 vertical-align: middle;
+}
+ .projects-table td p {
+	 font-size: 12px;
+}
+ .projects-table td p:last-of-type {
+	 color: #f7f8f8;
+	 font-size: 11px;
+}
+ .projects-table th {
+	 background-color: #313d4f;
+}
+ .projects-table tr:hover {
+	 background-color: #303d52;
+}
+ .projects-table tr:not(:last-of-type) {
+	 border-bottom: 1px solid #313d4f;
+}
+ .projects-table .member figure, .projects-table .member .member-info {
+	 display: inline-block;
+	 vertical-align: top;
+}
+ .projects-table .member figure + .member-info {
+	 margin-left: 7px;
+}
+ .projects-table .member img {
+	 border-radius: 50%;
+	 height: 32px;
+	 width: 32px;
+}
+ .projects-table .status > form {
+	 float: right;
+}
+ .projects-table .status-text {
+	 display: inline-block;
+	 font-size: 12px;
+	 margin: 11px 0;
+	 padding-left: 20px;
+	 position: relative;
+}
+ .projects-table .status-text:before {
+	 border: 3px solid;
+	 border-radius: 50%;
+	 content: "";
+	 height: 14px;
+	 left: 0;
+	 position: absolute;
+	 top: 1px;
+	 width: 14px;
+}
+ .projects-table .status-text.status-blue:before {
+	 border-color: #1c93ed;
+}
+ .projects-table .status-text.status-green:before {
+	 border-color: #66b92e;
+}
+ .projects-table .status-text.status-orange:before {
+	 border-color: #da932c;
+}
+ .projects-table .status-text.status-red:before {
+	 border-color: #d65b4a;
+}
+ .selectric {
+	 background-color: transparent;
+	 border-color: #313d4f;
+	 border-radius: 4px;
+}
+ .selectric .label {
+	 color: #738297;
+	 line-height: 34px;
+	 margin-right: 10px;
+	 text-align: left;
+}
+ .selectric-wrapper {
+	 float: right;
+	 width: 150px;
+}
+ .chart {
+	 border-radius: 3px;
+	 border: 1px solid #313d4f;
+	 color: white;
+	 padding: 10px;
+	 position: relative;
+	 text-align: center;
+}
+ .chart canvas {
+	 height: 400px;
+	 margin: 20px 0;
+	 width: 100%;
+}
+ .chart .actions {
+	 margin: 15px;
+	 position: absolute;
+	 right: 0;
+	 top: 0;
+}
+ .chart .actions span {
+	 cursor: pointer;
+	 display: inline-block;
+	 font-size: 20px;
+	 margin: 5px;
+	 padding: 4px;
+}
+ .chart .actions .btn-link {
+	 color: white;
+}
+ .chart .actions .btn-link i {
+	 font-size: 1.75rem;
+}
+ .chart .title {
+	 font-size: 18px;
+	 margin: 0;
+	 padding: 15px 0 5px;
+}
+ .chart .title + .tagline {
+	 margin-top: 10px;
+}
+ .chart .tagline {
+	 font-size: 12px;
+}
+ .danger-item {
+	 border-left: 4px solid #a84d43;
+}
+ .zmdi {
+	 line-height: 1;
+	 vertical-align: middle;
+}
+table, p, h4, label{
+    color:white;
+}
+</style>
+
+<body>
+  {% for message in messages %}
+    <div id='messages_to_be_deleted' class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <strong>Message:</strong> {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    {% endfor %}
+     <nav class="navbar navbar-dark sticky-top flex-md-nowrap p-0">
+          <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="{% url 'staff_dashboard' %}">{{ owner.name }} Admin Panel</a>
+          <!-- <input class="form-control form-control-dark w-100" type="text" placeholder="Search" aria-label="Search"> -->
+          <ul class="navbar-nav px-3">
+               <li class="nav-item text-nowrap">
+                    <a class="nav-link" href="{% url 'signout' %}">Sign out</a>
+               </li>
+          </ul>
+     </nav>
+     <div class="container-fluid">
+          <div class="row">
+               <nav class="col-md-2 d-none d-md-block sidebar">
+                    <div class="sidebar-sticky">
+                         <ul class="nav flex-column">
+                              <li class="nav-item">
+                                <a class="nav-link active" href="{% url 'staff_dashboard' %}">
+                       <i class="zmdi zmdi-widgets"></i>
+                       Dashboard <span class="sr-only">(current)</span>
+                     </a>
+                              </li>
+                              <li class="nav-item">
+                                   <a class="nav-link" href="#">
+                       <i class="zmdi zmdi-file-text"></i>
+                       Applications
+                     </a>
+                              </li>
+                              <li class="nav-item">
+                                <a class="nav-link" href="{% url 'orphans_or_disability' %}">
+                    <i class="zmdi zmdi-accounts"></i>
+                    Orphans Or Disabilities
+                  </a>
+                              </li>
+                              <li class="nav-item">
+                                <a class="nav-link" href="{% url 'returning_applicants'%}">
+                    <i class="zmdi zmdi-accounts"></i>
+                    Returning Applicants
+                  </a>
+                     <li class="nav-item">
+                         <a class="nav-link" href="#">
+             <i class="zmdi zmdi-accounts"></i>
+             Family Background
+           </a>
+                              </li>
+                              <li class="nav-item">
+                                   <a class="nav-link" href="#">
+                       <i class="zmdi zmdi-chart"></i>
+                       Reports
+                     </a>
+                              </li>
+                              
+                         </ul>
+
+                         <h6 class="sidebar-heading d-flex justify-content-between align-items-center pl-3 mt-4 mb-1 text-muted">
+                              <span>Approve or Disapprove</span>
+
+                         </h6>
+                         <!-- <h4></h4> -->
+                         <div class="container">
+                          <p style="font-size: 16px;">Current Status: <strong>{{uploaded_docs.application_status}}</strong><br></p>
+                          <form method="post" action="{% url 'user_profile' uploaded_docs.user_id %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                              <label for="exampleInputEmail1"><br>Application Status</label>
+                              <select class="form-control" name="application_status">
+                                <option value="Submitted">Submitted</option>
+                                <option value="Under Review">Under Review</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                                <option value="Incomplete">Incomplete</option>
+                                <option value="Funded">Funded</option>
+                                <option value="Disbursed">Disbursed</option>
+                              </select>
+  
+                            </div>
+                            <div class="form-group">
+                              <label for="exampleInputEmail1">Allocating</label>
+                              <select class="form-control" name="funds_for">
+                                <option value="Secondary">Secondary</option>
+                                <option value="Higher_Education">Higher Education</option>
+                                <option value="Undefined">Undefined</option>
+                              </select>
+                            </div>
+                            <div class="form-group">
+                              <label for="exampleInputEmail1">Awarding Funding</label>
+                              <input type="number" name="awarded" id="awarded" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Amount Awarding">
+                            </div>
+                            <button type="submit" id="submitBtn" class="btn btn-primary">Submit</button>
+                          </form>
+                         </div>
+                        
+
+
+                    </div>
+               </nav>
+               <main role="main" class="col-md-9 ml-sm-auto col-lg-10 my-3">
+                <div class="row">
+                    <div class="col-md-12 px-5 text-center mt-3">
+                    <h3>{{personal_details.fullname}}</h3>
+                    <p>Course: {{personal_details.course}}</p>
+                    <p>Family Status: {{family_background.family_status}}</p>
+                    <p>ID/Passport No. : {{personal_details.id_or_passport_no}}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="tb-table mt-3 px-5">
+                            <table class="table">
+                                <h4 class="text-center">Personal, Institutional and Other Details</h4>
+                                <thead class="thead-primary">
+                                    <tr class="bg-primary">
+                                    <th scope="col">Element</th>
+                                    <th scope="col">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                    <th scope="row">Full Name</th>
+                                    <td>{{personal_details.fullname}}</td>
+                                    
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">ID/Passport No.</th>
+                                    <td>{{personal_details.id_or_passport_no}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Mobile/Phone No.</th>
+                                    <td>{{personal_details.mobile_no}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Gender</th>
+                                    <td>{{personal_details.gender}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Institution</th>
+                                    <td>{{personal_details.institution}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Admission/Registration No.</th>
+                                    <td>{{personal_details.admin_no}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Campus or Branch</th>
+                                    <td>{{personal_details.campus_or_branch}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Faculty</th>
+                                    <td>{{personal_details.faculty}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Course</th>
+                                    <td>{{personal_details.course}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Course Duration</th>
+                                    <td>{{personal_details.course_duration}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Mode Of Study</th>
+                                    <td>{{personal_details.mode_of_study}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Year Of Study/Class</th>
+                                    <td>{{personal_details.year_of_study}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Year Of Completion</th>
+                                    <td>{{personal_details.year_of_completion}}</td>
+                                    </tr>
+                                    <tr class='bg-warning'>
+                                      <th  scope="row">AMOUNT REQUESTING</th>
+                                      <td>{{personal_details.ammount_requesting}}</td>
+                                      </tr> 
+                                </tbody>
+                                </table>
+                                
+                                
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="tb-table mt-5 px-5">
+                            <table class="table ">
+                                <h4 class="text-center">Polling Station</h4>
+                                <thead class="thead-warning">
+                                    <tr class="bg-warning">
+                                    <th scope="col">Element</th>
+                                    <th scope="col">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Ward</th>
+                                        <td>{{personal_details.ward}}</td>
+                                        </tr>
+                                    <tr>
+                                    <th scope="row">Name of Polling Station</th>
+                                    <td>{{personal_details.name_polling_station}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Location</th>
+                                    <td>{{personal_details.location}}</td>
+                                    </tr>
+
+                                    <tr>
+                                    <th scope="row">Sub Location</th>
+                                    <td>{{personal_details.sub_location}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">Physical Address</th>
+                                    <td>{{personal_details.physical_address}}</td>
+                                    </tr>
+
+                                    <tr>
+                                    <th scope="row">Permanent Address</th>
+                                    <td>{{personal_details.permanent_address}}</td>
+                                    </tr>
+                                    
+                                    
+                                </tbody>
+                                </table>
+
+
+                                <table class="table mt-2">
+                                <h4 class="text-center mt-5">INSTITUTION'S DETAILS</h4>
+                                <thead class="thead-success">
+                                    <tr class="bg-success">
+                                    <th scope="col">Element</th>
+                                    <th scope="col">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">INSTITUTION NAME</th>
+                                        <td>{{personal_details.institution}}</td>
+                                        </tr>
+                                    <tr>
+                                    <th scope="row">INSTITUTION'S POSTAL ADDRESS</th>
+                                    <td>{{personal_details.institution_postal_address}}</td>
+                                    </tr>
+                                    <tr>
+                                    <th scope="row">INSTITUTION'S TELEPHONE NUMBER</th>
+                                    <td>{{personal_details.institution_telephone_no}}</td>
+                                    </tr>
+
+                                    <tr>
+                                    <th scope="row">AMOUNT REQUESTING</th>
+                                    <td>{{personal_details.ammount_requesting}}</td>
+                                    </tr>                                 
+                                </tbody>
+                                </table>
+                                
+                                
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+
+                    <div class="col-md-6">
+                        <table class="table mt-2">
+                            <h4 class="text-center mt-5">FAMILY BACKGROUND</h4>
+                            <thead class="thead-primary">
+                                <tr class="bg-primary">
+                                <th scope="col">Element</th>
+                                <th scope="col">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">Family Status</th>
+                                    <td>{{family_background.family_status}}</td>
+                                    </tr>
+                                <tr>
+                                <th scope="row">Number of siblings</th>
+                                <td>{{family_background.number_siblings}}</td>
+                                </tr>
+                                <tr>
+                                <th scope="row">Estimated Family income</th>
+                                <td>{{family_background.family_income}} (annually Kshs.)</td>
+                                </tr>
+
+                                <tr>
+                                <th scope="row">Estimated Family expense</th>
+                                <td>{{family_background.family_expense}} (annually Kshs.)</td>
+                                </tr>                                 
+                            </tbody>
+
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless mt-4">
+                            <h4>(a) Father:</h4>
+                            <thead>
+                              <tr class="bg-warning">
+                                <th scope="col">Element</th>
+                                <th scope="col">Details</th>
+
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <th scope="row">Full Name</th>
+                                <td>{{family_background.father_name}}</td>
+
+                              </tr>
+                              <tr>
+                                <th scope="row">Address</th>
+                                <td>{{family_background.father_address}}</td>
+
+                              </tr>
+                              <tr>
+                                <th scope="row">Telephone Number</th>
+                                <td colspan="2">{{family_background.father_mobile_no}}</td>
+                              </tr>
+
+
+                              <tr>
+                                <th scope="row">Occupation</th>
+                                <td colspan="2">{{family_background.father_occupation}}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">Type of employment</th>
+                                <td colspan="2">{{family_background.father_type_of_employment}}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">Main source of income</th>
+                                <td colspan="2">{{family_background.father_main_source_of_income}}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+
+
+
+                          <table class="table table-borderless mt-4">
+                            <h4>(b) Mother:</h4>
+                            <thead>
+                              <tr class="table-light text-primary">
+                                <th scope="col">Element</th>
+                                <th scope="col">Details</th>
+
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <th scope="row">Full Name</th>
+                                <td>{{family_background.mother_full_name}}</td>
+
+                              </tr>
+                              <tr>
+                                <th scope="row">Address</th>
+                                <td>{{family_background.mother_address}}</td>
+
+                              </tr>
+                              <tr>
+                                <th scope="row">Telephone Number</th>
+                                <td colspan="2">{{family_background.mother_telephone_number}}</td>
+                              </tr>
+
+
+                              <tr>
+                                <th scope="row">Occupation</th>
+                                <td colspan="2">{{family_background.mother_occupation}}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">Type of employment</th>
+                                <td colspan="2">{{family_background.mother_type_of_employment}}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">Main source of income</th>
+                                <td colspan="2">{{family_background.mother_main_source_of_income}}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+
+
+                          <table class="table table-borderless mt-4">
+                            <h4>(c) Guardian:</h4>
+                            <thead>
+                              <tr class="bg-danger">
+                                <th scope="col">Element</th>
+                                <th scope="col">Details</th>
+
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <th scope="row">Full Name</th>
+                                <td>{{family_background.guardian_full_name}}</td>
+
+                              </tr>
+                              <tr>
+                                <th scope="row">Address</th>
+                                <td>{{family_background.guardian_address}}</td>
+
+                              </tr>
+                              <tr>
+                                <th scope="row">Telephone Number</th>
+                                <td colspan="2">{{family_background.guardian_telephone_number}}</td>
+                              </tr>
+
+
+                              <tr>
+                                <th scope="row">Occupation</th>
+                                <td colspan="2">{{family_background.guardian_occupation}}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">Type of employment</th>
+                                <td colspan="2">{{family_background.guardian_type_of_employment}}</td>
+                              </tr>
+                              <tr>
+                                <th scope="row">Main source of income</th>
+                                <td colspan="2">{{family_background.guardian_main_source_of_income}}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                          <div class="mt-4">
+                            <h4>Documents Uploaded</h4>
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.transcript_report_form }}">Report or Transcript </a> <br>
+                            {% if uploaded_docs.parents_guardians_id_card %}
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.parents_guardians_id_card }}">Parents or Guardians ID Card </a><br>
+                            {% endif %}
+                            {% if uploaded_docs.students_id_card %}
+        
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.students_id_card }}">students_id_card </a><br>
+                            {% endif %}
+                            {% if uploaded_docs.birth_certificate %}
+                            
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.birth_certificate }}">Birth Certificate </a><br>
+                            {%endif%}
+        
+                            {% if uploaded_docs.id_card %}
+        
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.id_card }}">ID Card</a><br>
+                            {%endif%}
+                            {% if uploaded_docs.parents_death_certificate %}
+        
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.parents_death_certificate }}">Parents Death Certificate</a><br>
+                            {%endif%}
+        
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.fees_structure }}">Fees Structure</a><br>
+        
+                            {%if uploaded_docs.admission_letters %}
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.admission_letters }}">Admission Letters </a><br>
+        
+                            {%endif%}
+                            {%if uploaded_docs.verification_document %}
+        
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.verification_document }}">Verification Document</a>
+                            {%endif%}
+                          </div>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table mt-2">
+                            <h4 class="text-center mt-5">Siblings</h4>
+                            <thead class="thead-success">
+                                <tr class="bg-success">
+                                <th scope="col">S/No.</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Institution</th>
+                                <th scope="col">Fees</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for sibling in siblings %}
+                                <tr>
+                                    <td>{{forloop.counter}}</td>
+                                    <td>{{sibling.sibling_name}}</td>
+                                    <td>{{sibling.institution}}</td>
+                                    <td>{{sibling.fees}}</td> 
+                                <tr>
+                                {% endfor %}                              
+                            </tbody>
+                            </table>
+                        <div class="mt-5">
+                            <h4>APPLICANT'S ADDITIONAL INFORMATION</h4>
+                            <p><br><strong>Reason for applying for bursary assistance:</strong> <br>{{additional_info.reason}}</p>
+                            <p><br><br><strong>If applicant have received any financial support / bursaries from NG-CDF in the past</strong> <br>{{additional_info.prev_bursary}}</p>
+                            <p><br><br><strong>if applicant have received any financial support bursaries from other organizations in the past</strong> <br>{{additional_info.org_bursary}}</p>
+                            <p><br><br><strong>if applicant suffers from any physical impairment (disability)</strong> <br>{{additional_info.disability}}</p>
+                            <p><br><br><strong>if applicant suffer from any chronic illness</strong> <br>{{additional_info.chronic_illness}}</p>
+                            <p><br><br><strong>if applicant's parents/guardians suffer from any chronic illness</strong> <br>{{additional_info.fam_disability}}</p>
+                            <h4> <br><u>EDUCATION FUNDING HISTORY</u></h4>
+                            <p style="font-size: 14px;"><strong>(i).Applicant States the main source of funding for your education in the past as below:
+                            </strong><br></p>
+                            <p style="margin-left: 20px;">
+                                In secondary school: <strong>{{additional_info.fund_secondary}}</strong><br>
+                                In college: <strong>{{additional_info.fund_college}}</strong><br>
+                                In the university: <strong>{{additional_info.fund_uni}}</strong><br>
+                            </p>
+                            <p style="font-size: 14px;"><br><strong>(ii). Applicant Indicates other sources of funding if any:
+                            </strong><br></p>
+                            <p style="margin-left: 20px;">
+                                In secondary school: <strong>{{additional_info.other_fund_secondary}}</strong><br>
+                                In college: <strong>{{additional_info.other_fund_college}}</strong><br>
+                                In the university: <strong>{{additional_info.other_fund_uni}}</strong><br>
+                            </p>
+                        </div>
+                        <div class="mt-5">
+                          <h4>APPLICANT'S ACADEMIC PERFORMANCE</h4>
+                          <p><br><strong>Applicant average academic performance</strong> <br>{{academic_performance.average_performance}}</p>
+                          <p><strong>If applicant has been sent away from school</strong> <br>{{academic_performance.sent_away}}</p>
+                          <p><strong>Specify the number of weeks applicant has stayed away from school</strong> <br>{{academic_performance.no_of_weeks}}</p>
+                          <p><strong>Annual fees as per fees structure Kshs. </strong> <br>{{academic_performance.annual_fees}}</p>
+                          <p><strong>Last semester's/Term's fee balance Kshs. </strong> <br>{{academic_performance.last_sem_fees}}</p>
+                          <p><strong>This semester's/Term's fee balance Kshs. </strong> <br>{{academic_performance.current_sem_fees}}</p>
+                          <p><strong>Next semester's/Term's fee balance Kshs. </strong> <br>{{academic_performance.next_sem_fees}}</p>
+                          <p><br><strong> Loan from HELB ( where applicable). </strong> <br>{{academic_performance.helb_loan}}</p>
+                      </div>
+                      <div class="mt-5">
+                        <h4>APPLICANT'S ACADEMIC PERFORMANCE</h4>
+                        
+                            <p>1. <br>
+                              Name: <strong>{{academic_performance.ref_one_name}}</strong><br>
+                              Address: <strong>{{academic_performance.ref_one_address}}</strong><br>
+                              Telephone: <strong>{{academic_performance.ref_one_number}}</strong><br><br>
+                            </p>
+                          
+                            <p>2. <br>
+                              Name: <strong>{{academic_performance.ref_two_name}}</strong><br>
+                              Address: <strong>{{academic_performance.ref_two_address}}</strong><br>
+                              Telephone: <strong>{{academic_performance.ref_two_number}}</strong><br>
+                            </p>
+                          
+                        </div>
+                    </div>
+                </div>
+                <div class="row py-3 px-5 mt-3">
+                  
+                  <div class="col-md-6">
+                    
+                  </div>
+                </div>
+                    
+               </main>
+          </div>
+          
+     </div>
+     <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        // Get references to the input and submit button
+        var awardedInput = document.getElementById("awarded");
+        var submitButton = document.getElementById("submitBtn");
+      
+        // Add an event listener to the input field
+        awardedInput.addEventListener("input", function() {
+          // Enable or disable the submit button based on the input value
+          submitButton.disabled = (awardedInput.value === "Undefined");
+        });
+      });
+      </script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/jquery.selectric/1.10.1/jquery.selectric.min.js"></script>
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
+     
+
+</body>
+</html>
