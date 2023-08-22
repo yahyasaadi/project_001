@@ -1392,7 +1392,10 @@ def apply(request):
                     owner = OwnerDetails.objects.first()
                     return render(request, 'users/uploading.html',{'owner':owner,'last_application':last_application})
                 else:
-                    return HttpResponse(f'You have already applied and your application status: {already.application_status}')
+                    # return HttpResponse(f'You have already applied and your application status: {already.application_status}')
+                    status = already.application_status
+                    return render(request, 'users/submitted.html', {'status':status})
+                
 
             else:
                 # The end_date has not passed
