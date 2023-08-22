@@ -15,7 +15,16 @@ from django.contrib.admin.views.decorators import staff_member_required
 from CDF import settings
 # from django.http import HttpResponse
 from .tokens import generate_token
-from .models import OwnerDetails, PersonalDetails, FamilyBackaground, Sibling, AdditionalInformation, AcademicPerformance, Application, UploadedDocuments
+from .models import (
+    OwnerDetails,
+    PersonalDetails,
+    FamilyBackaground,
+    Sibling,
+    AdditionalInformation,
+    AcademicPerformance,
+    Application,
+    UploadedDocuments
+    )
 from fpdf import FPDF
 from datetime import datetime
 
@@ -1393,3 +1402,32 @@ def apply(request):
             # No Application instance exists
             print("No Application instance found.")
             return HttpResponse('No application found yet')
+        
+
+# new application creation
+def new_application(request):
+    if request.method=='POST':
+        id_for_reference = request.POST['id_for_reference']
+        name_of_application = request.POST['name_of_application']
+        funds_available_for_secondary_schools = request.POST['funds_available_for_secondary_schools']
+        funds_available_for_universities = request.POST['funds_available_for_universities']
+        start_date = request.POST['start_date']
+        end_date = request.POST['end_date']
+        # is_active = request.POST['is_active']
+
+        application = Application(
+            id_for_reference = id_for_reference,
+            name_of_application = name_of_application,
+            funds_available_for_secondary_schools = funds_available_for_secondary_schools,
+            funds_available_for_universities = funds_available_for_universities,
+            start_date = start_date,
+            end_date = end_date,
+            is_active = True
+        )
+
+        application.save()
+        return redirect('staff_dashboard')
+    else:
+
+        owner = OwnerDetails.objects.last()
+        return render(request, 'users/new_application.html',{"owner":owner})
