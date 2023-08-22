@@ -1,0 +1,16 @@
+{% extends 'users/base.html' %}
+{% load static %}
+{% block content %}
+{% load bootstrap5 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+
+<div class="container mt-5">
+    <h1>Application Received</h1>
+
+    <p>Thank you for submitting your application. Your application has been successfully received.</p>
+    <p>Application status: {{ status }}</p>
+    <a class="btn btn-danger" href="{% url 'signout'%}" target="_blank" rel="noopener noreferrer">Sign Out</a>
+</div>
+
+{% endblock %}
