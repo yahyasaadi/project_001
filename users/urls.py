@@ -21,6 +21,7 @@ urlpatterns = [
     # path('review', views.review, name="review"),
     path('download', views.generate_pdf, name="download"),
     path('apply', views.apply, name="apply"),
+    path('new_application', views.new_application, name="new_application"),
 
 
 
