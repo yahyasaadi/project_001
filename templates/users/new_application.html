@@ -6,12 +6,24 @@
      <meta name="viewport" content="width=device-width, initial-scale=1.0">
      <title>{{ owner.name }} Online CDF Application</title>
      <link rel="shortcut icon" href="{% static 'images/overall.jpg' %}" type="image/x-icon">
-     <!-- <link rel="stylesheet" type="text/css" href="{% static 'css/list.css' %}"> -->
+     <link rel="stylesheet" type="text/css" href="{% static 'css/list.css' %}">
      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:300,600" />
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
      <link rel="stylesheet" href="https://cdn.jsdelivr.net/jquery.selectric/1.10.1/selectric.css">
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/material-design-iconic-font/2.2.0/css/material-design-iconic-font.min.css">
 </head>
+<style>
+     .projects-inner label {
+    color: white;
+}
+form{
+     padding: 20px;
+}
+form input{
+     border-radius: 10px;
+     padding: 5px;
+}
+</style>
 
 <body>
      {% for message in messages %}
@@ -114,26 +126,82 @@
                               <!-- HERE -->
                                 <form method="post" action="{% url 'new_application' %}">
                                     {% csrf_token %}
+                                    <table>
                                     
-                                    <label for="id_for_reference">ID for Reference:</label>
-                                    <input type="text" name="id_for_reference" id="id_for_reference" required><br><br>
+                                        <tr>
+                                             <td>
+                                                  <label for="id_for_reference">ID for Reference:</label>
+                                             </td>
+                                             <td>
+                                                  <input type="text" name="id_for_reference" id="id_for_reference" required>
+                                             </td>
+                                        </tr>
+                                        
+                                        <tr>
+                                             <td>
+                                                  <label for="name_of_application">Name of Application:</label>
+
+                                             </td>
+                                             <td>
+                                                  <input type="text" name="name_of_application" id="name_of_application" required>
+
+                                             </td>
+                                        </tr>
+                                        
                                     
-                                    <label for="name_of_application">Name of Application:</label>
-                                    <input type="text" name="name_of_application" id="name_of_application" required><br><br>
-                                    
+                                        <tr>
+                                             <td>
                                     <label for="funds_available_for_secondary_schools">Funds for Secondary Schools:</label>
-                                    <input type="number" name="funds_available_for_secondary_schools" id="funds_available_for_secondary_schools" required><br><br>
+
+                                             </td>
+                                             <td>
+                                    <input type="number" name="funds_available_for_secondary_schools" id="funds_available_for_secondary_schools" required>
+
+                                             </td>
+                                        </tr>
                                     
-                                    <label for="funds_available_for_universities">Funds for Universities:</label>
-                                    <input type="number" name="funds_available_for_universities" id="funds_available_for_universities" required><br><br>
+                                        <tr>
+                                             <td>
+                                        <label for="funds_available_for_universities">Funds for Universities:</label>
+
+                                             </td>
+                                             <td>
+                                    <input type="number" name="funds_available_for_universities" id="funds_available_for_universities" required>
+
+                                             </td>
+                                        </tr>
                                     
-                                    <label for="start_date">Start Date:</label>
-                                    <input type="date" name="start_date" id="start_date" required><br><br>
+                                        <tr>
+                                             <td>
+                                        <label for="start_date">Start Date:</label>
+
+                                             </td>
+                                             <td>
+                                    <input type="date" name="start_date" id="start_date" required>
+
+                                             </td>
+                                        </tr>
+                                        <tr>
+                                             <td>
+                                                  <label for="end_date">End Date:</label>
                                     
-                                    <label for="end_date">End Date:</label>
-                                    <input type="date" name="end_date" id="end_date" required><br><br>
+                                             </td>
+                                             <td>
+                                    <input type="date" name="end_date" id="end_date" required>
+
+                                             </td>
+                                        </tr>
+                                    <tr>
+                                        <td>
+                                    <input class="btn btn-success" type="submit" value="Submit">
+
+                                        </td>
+                                    </tr>
                                     
-                                    <input type="submit" value="Submit">
+                                    
+                                    
+                                    
+                                   </table>
                                 </form> 
                             
                          </div>

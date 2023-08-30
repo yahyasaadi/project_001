@@ -18,11 +18,11 @@ urlpatterns = [
     path('update_additional_info', views.update_additional_info, name="update_additional_info"),
     path('academic_performance', views.academic_performance, name="academic_performance"),
     path('update_academic_performance', views.update_academic_performance, name="update_academic_performance"),
-    # path('review', views.review, name="review"),
+    path('approved_lst_pdf', views.approved_lst_pdf, name="approved_lst_pdf"),
     path('download', views.generate_pdf, name="download"),
     path('apply', views.apply, name="apply"),
     path('new_application', views.new_application, name="new_application"),
-
+    path("generate_bursary_letter/<int:user_id>", views.generate_bursary_letter, name="generate_bursary_letter"),
 
 
     path('user/<int:user_id>/', views.user_profile, name='user_profile'),

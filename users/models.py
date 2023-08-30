@@ -188,7 +188,7 @@ application_status = [
 class Application(models.Model):
     id_for_reference = models.CharField(max_length=100, unique=True)
     name_of_application = models.CharField(max_length=200)
-    number_of_applicant = models.IntegerField(null=True)
+    number_of_applicant = models.IntegerField(null=True, default=0)
     funds_available_for_secondary_schools = models.IntegerField(null=True, default=0)
     funds_available_for_universities = models.IntegerField(null=True, default=0)
     start_date = models.DateField()

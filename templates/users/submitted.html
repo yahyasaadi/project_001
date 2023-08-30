@@ -8,8 +8,8 @@
 <div class="container mt-5">
     <h1>Application Received</h1>
 
-    <p>Thank you for submitting your application. Your application has been successfully received.</p>
-    <p>Application status: {{ status }}</p>
+    <p>Thank you for submitting your application.</p>
+    <p>Application status: <span class="text-success" style="font-size: 20px;"><strong>{{ status }}</strong> </span> </p>
     <a class="btn btn-danger" href="{% url 'signout'%}" target="_blank" rel="noopener noreferrer">Sign Out</a>
 </div>
 

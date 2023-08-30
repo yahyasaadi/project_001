@@ -192,3 +192,24 @@ img {
 }
 
 
+.wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+	position: relative;
+}
+
+.content {
+  font-family: montserrat;
+  text-align: center;
+}
+
+.content h3 {
+  text-transform: uppercase;
+  font-size: 40px;
+}
+
+.content p {
+  font-size: 14px;
+}
