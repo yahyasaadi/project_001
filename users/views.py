@@ -1483,11 +1483,20 @@ def apply(request):
             else:
                 # The end_date has not passed
                 print("The end date has passed.")
-                return HttpResponse(f'You passed the deadline which was {last_application.end_date}')
+                context={
+                'message':"Deadline for Submission has passed or Application has been Suspended.",
+                'owner':owner,
+            }
+            return render(request, 'users/404.html',context)
+                # return HttpResponse(f'You passed the deadline which was {last_application.end_date}')
         else:
             # No Application instance exists
             print("No Application instance found.")
-            return HttpResponse('No application found yet')
+            context={
+                'message':"No Application Open",
+                'owner':owner,
+            }
+            return render(request, 'users/404.html',context)
         
 
 
