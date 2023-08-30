@@ -3,9 +3,15 @@
 {% block content %}
 <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">    
     {% if user.is_authenticated %}
-    <h3>Hello {{ fname }}!</h3>
-    <h4>You're successfully logged in.</h4>
-    <button type="submit"><a href="/signout">Sign Out</a></button>
+    <div class="wrapper">
+      <div class="content">
+        <h3>Hello {{ user.first_name }}!</h3>
+          <p>Welcome to {{owner.name}} Online Bursary Application.</p>
+          <p>{{owner.description}}</p>
+          <a class="btn btn-block btn-primary" href="{% url 'personal_details' %}">Proceed</a>
+      </div>
+    </div>
+   
     {% else %}
         <div>
             <div id="product-landing">
@@ -34,6 +40,6 @@
     {% endif %}
     </div>
 </div>
-        </div>
+</div>
 
 {% endblock %}
