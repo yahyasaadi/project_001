@@ -784,7 +784,7 @@ def user_profile(request, user_id):
         application_status = request.POST['application_status']
         funds_for = request.POST['funds_for']
         awarded = request.POST['awarded']
-        urgency = request.POST['urgency']
+        
         
         
         
@@ -1779,17 +1779,8 @@ def approved_lst_pdf(request):
 
 
 
-
 @staff_member_required
 def forwarding_letter(request):
-    # current_application = Application.objects.last()
-    # approved_user_ids = UploadedDocuments.objects.filter(application_status='Approved', application=current_application).values_list('user_id', flat=True)
-    # approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids)
-    # # Get the unique institutions of approved users
-    # unique_institutions = PersonalDetails.objects.filter(user_id__in=approved_user_ids).values_list('institution', flat=True).distinct()
-    
-    # for inst in unique_institutions:
-    #     print(inst)
     current_application = Application.objects.last()
 
     # Get the user IDs of approved users in the current application
@@ -1802,23 +1793,91 @@ def forwarding_letter(request):
     grouped_users_by_institution = {}
 
     # Group the approved users by their institution
-    for institution, users in groupby(approved_users_personal_details, key=lambda x: x.institution):
+    sorted_users = sorted(approved_users_personal_details, key=lambda x: x.institution)
+    
+    for institution, users in groupby(sorted_users, key=lambda x: x.institution):
         # Convert the 'users' iterator to a list to store all users for the institution
         grouped_users_by_institution[institution] = list(users)
 
     # Now, 'grouped_users_by_institution' contains a dictionary where keys are institutions, and values are lists of users for each institution.
 
     context = {
-        'owner':OwnerDetails.objects.last(),
-        'grouped_users_by_institution':grouped_users_by_institution
+        'owner': OwnerDetails.objects.last(),
+        'grouped_users_by_institution': grouped_users_by_institution
     }
-    return render(request, 'users/forwarding_letter.html',context)
+    return render(request, 'users/forwarding_letter.html', context)
 
 
 
 
 
+@staff_member_required
+def forwarding_letter_institution(request, institution):
+    current_application = Application.objects.last()
+    owner = OwnerDetails.objects.last()
 
+    # Get the user IDs of approved users in the current application
+    approved_user_ids = UploadedDocuments.objects.filter(application_status='Approved', application=current_application).values_list('user_id', flat=True)
+    approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution)
+    personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution).last()
+    
+    Email_Address = request.user.email
+    Constituency_Name = owner.name
+    fullname=request.user.first_name + ' '+ request.user.last_name
+    current_date = datetime.now().strftime("%Y-%m-%d")
+
+    pdf = FPDF()
+
+    pdf.add_page()
+
+    pdf.set_font("Times", 'B', size=12)
+
+    # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+    pdf.cell(0, 8, f"{fullname},", ln=True, align="R")
+    pdf.cell(0, 8, f"{Constituency_Name},", ln=True, align="R")
+    pdf.multi_cell(0, 8, f"P. O. Box: 123456 - 70100,\n Garissa.", align="R")
+    pdf.ln(4)
+    pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+
+    pdf.ln(6)
+    pdf.cell(0, 8, f"Office of Student Finance,", ln=True, align="L")
+    pdf.cell(0, 8, f"{institution},", ln=True, align="L")
+    pdf.cell(0, 8, f"P. O. Box: {personal_details.institution_postal_address},", ln=True, align="L")
+
+    
+    pdf.ln(5)
+    pdf.set_font("Times", size=12)
+
+    pdf.cell(0,6, "Dear Sir/Madam,", ln=True, align="L")
+
+    pdf.set_font("Times", 'B', size=12)
+
+    pdf.multi_cell(0, 8, f"RE: Notification of Bursary Award for the following students.")
+    pdf.ln(3)
+    pdf.set_font("Times", size=12)
+
+    # Create a table header
+    pdf.set_fill_color(0, 191, 255)  # Light Blue
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(70, 10, "Name", 1, 0, 'C', 1)
+    pdf.cell(50, 10, "Admission Number", 1, 0, 'C', 1)
+    pdf.cell(40, 10, "Amount Awarded", 1, 1, 'C', 1)
+
+    # Create a table with student details
+    pdf.set_fill_color(255, 255, 255)  # White
+    pdf.set_font("Arial", size=12)
+    for student in approved_users_personal_details:
+        pdf.cell(70, 10, student.fullname, 1)
+        pdf.cell(50, 10, student.admin_no, 1)
+        pdf.cell(40, 10, "4000000", 1, ln=True)
+
+
+
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{institution}.pdf"'
+    response.write(pdf.output(dest='S').encode('latin1'))
+    return response
 
 
 

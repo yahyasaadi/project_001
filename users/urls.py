@@ -29,6 +29,8 @@ urlpatterns = [
     
 
     path('user/<int:user_id>/', views.user_profile, name='user_profile'),
+    path('forwarding_letter_institution/<str:institution>/', views.forwarding_letter_institution, name='forwarding_letter_institution'),
+
     path('students_dashboard/', views.studentsDashboard, name="students_dashboard"),
     path('list_of_applicants/', views.list_of_applicants, name="list_of_applicants"),
     path('orphans_or_disability/', views.orphans_or_disability, name="orphans_or_disability"),
