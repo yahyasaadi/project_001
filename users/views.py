@@ -1883,3 +1883,43 @@ def forwarding_letter_institution(request, institution):
 
 
 
+
+@staff_member_required
+def create_institution(request):
+    if request.method == 'POST':
+        institution_name = request.POST["institution_name"]
+        institution_Reference = request.POST['institution_Reference']
+
+        if User.objects.filter(username=institution_Reference):
+            messages.error(request, f"Institution with {institution_Reference} already exists. Try again!")
+            return redirect('create_institution')
+        new_inst = User.objects.create_user(institution_Reference)
+        new_inst.first_name  = institution_name
+        new_inst.last_name  = 'Institution'
+        new_inst.save()
+        messages.success(request, "Institution has been successfully created.")
+        return redirect('create_institution')
+    
+    context = {
+        'owner':OwnerDetails.objects.last(),
+        'institutions':User.objects.filter(last_name='Institution')
+    }
+    return render(request, 'users/create_institution.html',context)
+
+
+
+@staff_member_required#
+def institution_profile(request, inst_name):
+
+    institution = get_object_or_404(User, username=inst_name)
+
+    return HttpResponse(institution.first_name)
+
+
+
+
+
+
+
+
+
