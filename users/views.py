@@ -14,6 +14,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.template.defaultfilters import date
 # from django.conf import settings
 from CDF import settings
+from itertools import groupby
+
 # from django.http import HttpResponse
 from .tokens import generate_token
 from .models import (
@@ -82,13 +84,7 @@ def signup(request):
         messages.success(request, "Your account has been successfully created.")
 
 
-        # subject = "Welcome to Dadaab CDF Login!!"
-        # message = "Hello " + new_user.first_name + "!! \n" + "Welcome to GFG!! \nThank you for visiting our website\n. We have also sent you a confirmation email, please confirm your email address. \n\nThanking You\nYahya Saadi"        
-        # from_email = settings.EMAIL_HOST_USER
-        # to_list = [new_user.email]
-        # send_mail(subject, message, from_email, to_list, fail_silently=True)
-        # send_mail("Welcome to Dadaab CDF Login!!", "The message", "yahyasaadi9219@gmail.com", ["yahyasnoor@gmail.com"], fail_silently=True)
-
+       
         # welcome email
         email = EmailMessage(
             subject="Welcome to Dadaab CDF Login!!",
@@ -335,6 +331,7 @@ def personal_details(request):
     if request.method == 'POST':
         user = request.user
         fullname = request.POST['fullname']
+        education_level = request.POST['education_level']
         id_or_passport_no = request.POST['id_or_passport_no']
         gender = request.POST['gender']
         date_of_birth = request.POST['date_of_birth']
@@ -364,10 +361,11 @@ def personal_details(request):
         saving_personal_details = PersonalDetails(
             user=user,
             fullname=fullname,
+            education_level=education_level,
             id_or_passport_no= id_or_passport_no,
             gender=gender,
             date_of_birth=date_of_birth,
-            institution=institution,
+            institution=institution.upper(),
             admin_no=admin_no,
             campus_or_branch=campus_or_branch,
             faculty=faculty,
@@ -404,6 +402,8 @@ def update_personal_details(request):
         user = request.user
         print(user)
         fullname = request.POST['fullname']
+        education_level = request.POST['education_level']
+        
         id_or_passport_no = request.POST['id_or_passport_no']
         gender = request.POST['gender']
         date_of_birth = request.POST['date_of_birth']
@@ -433,10 +433,11 @@ def update_personal_details(request):
         updating = PersonalDetails.objects.filter(user=user).update(
             user=user,
             fullname=fullname,
+            education_level=education_level,
             id_or_passport_no= id_or_passport_no,
             gender=gender,
             date_of_birth=date_of_birth,
-            institution=institution,
+            institution=institution.upper(),
             admin_no=admin_no,
             campus_or_branch=campus_or_branch,
             faculty=faculty,
@@ -502,7 +503,7 @@ def signin(request):
         owner = OwnerDetails.objects.first()  
         return render(request, "users/signin.html",{'owner':owner})
 
-
+@login_required
 def signout(request):
     logout(request)
     messages.success(request, "Logged Out Successfully!!")
@@ -783,6 +784,8 @@ def user_profile(request, user_id):
         application_status = request.POST['application_status']
         funds_for = request.POST['funds_for']
         awarded = request.POST['awarded']
+        urgency = request.POST['urgency']
+        
         
         
 
@@ -794,6 +797,7 @@ def user_profile(request, user_id):
             uploaded_docs.application_status = application_status
             uploaded_docs.funds_for = funds_for
             uploaded_docs.awarded = awarded
+            uploaded_docs.approved_by = request.user.first_name + ' '+request.user.last_name
             uploaded_docs.save()
 
             messages.info(request, f"Applicant: {user1.first_name} {user1.last_name}'s Status has been updated to {application_status}")
@@ -977,36 +981,9 @@ def update_academic_performance(request):
         return render(request, 'users/update_academic_performance.html',{"owner":owner,'academic_performance':academic_performance})
 
 
-# @login_required
-# def review(request):
-#     owner = OwnerDetails.objects.first()
-#     personal_details = PersonalDetails.objects.get(user = request.user)
-#     family_background = FamilyBackaground.objects.get(user = request.user)
-#     siblings = Sibling.objects.filter(user = request.user)
-#     additional_info = AdditionalInformation.objects.get(user = request.user)
-#     academic_performance = AcademicPerformance.objects.get(user = request.user)
-#     context = {
-#         'owner':owner,
-#         'personal_details':personal_details,
-#         'family_background':family_background,
-#         'siblings':siblings,
-#         'additional_info':additional_info,
-#         'academic_performance':academic_performance
-#         }
-#     return render(request, 'users/review.html',context)
-
-
-
 @login_required
 def generate_pdf(request):
-    # owner = OwnerDetails.objects.first()
-    # personal_details = PersonalDetails.objects.get(user = request.user)
-    # family_background = FamilyBackaground.objects.get(user = request.user)
-    # siblings = Sibling.objects.filter(user = request.user)
-    # additional_info = AdditionalInformation.objects.get(user = request.user)
-    # academic_performance = AcademicPerformance.objects.get(user = request.user)
-    # application_details = Application.objects.last()
-
+    
     try:
         owner = OwnerDetails.objects.get()
         personal_details = PersonalDetails.objects.get(user=request.user)
@@ -1014,7 +991,7 @@ def generate_pdf(request):
         siblings = Sibling.objects.filter(user=request.user)
         additional_info = AdditionalInformation.objects.get(user=request.user)
         academic_performance = AcademicPerformance.objects.get(user=request.user)
-        application_details = Application.objects.get()  # Make sure you have the correct way to retrieve application details
+        application_details = Application.objects.last()  # Make sure you have the correct way to retrieve application details
         
     except (OwnerDetails.DoesNotExist, PersonalDetails.DoesNotExist, FamilyBackaground.DoesNotExist,
             Sibling.DoesNotExist, AdditionalInformation.DoesNotExist,
@@ -1400,10 +1377,11 @@ def generate_pdf(request):
     response.write(pdf.output(dest='S').encode('latin1'))
     return response
 
-
+@login_required
 def apply(request):
     if request.method=='POST':
         user = request.user
+        
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         id_card = request.FILES.get('id_card')
         transcript_report_form = request.FILES.get('transcript_report_form')
@@ -1445,7 +1423,7 @@ def apply(request):
 
         if saving:
             # owner = OwnerDetails.objects.first()
-            messages.success(request, "Your account has been successfully created.")
+            messages.success(request, "Documents uploaded Successfully.")
             return redirect('home')
         
         else:
@@ -1453,26 +1431,62 @@ def apply(request):
 
     else:
         owner = OwnerDetails.objects.first()
-        current_date = datetime.now().date()
+        current_date = datetime.now().date()       
+
         # Get the last added Application instance
         last_application = Application.objects.last()
         try:
             already = UploadedDocuments.objects.get(user=request.user,application=last_application)   
+
         except UploadedDocuments.DoesNotExist:
-            already = None  
+            already = None 
+
+        try:
+            level_of_Education = PersonalDetails.objects.get(user = request.user).education_level
+
+        except PersonalDetails.DoesNotExist:
+            level_of_Education = None
+
             
-        print(already)
+        
         if last_application:
             # Get the current date
             current_date = datetime.now().date()
 
             # Compare the end_date with the current date
-            if last_application.end_date > current_date and last_application.is_active :
+            application_statuses = ['Approved', 'Funded', 'Disbursed']
+            approved_sum_sec = UploadedDocuments.objects.filter(application_status__in=application_statuses, application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum']
+            approved_sum_uni = UploadedDocuments.objects.filter(application_status__in=application_statuses, application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum']
+            approved_sum_sec = approved_sum_sec = int(approved_sum_sec) if approved_sum_sec is not None else 0
+            approved_sum_uni = approved_sum_uni = int(approved_sum_uni) if approved_sum_uni is not None else 0
+            # all_funds = int(last_application.funds_available_for_secondary_schools + last_application.funds_available_for_universities)
+            print(f"Funds funds_available_for_secondary_schools ..... {last_application.funds_available_for_secondary_schools}")
+
+            if last_application.end_date > current_date and last_application.is_active:
                 # The end_date has passed
                 print("The end date has not passed.")
                 if already is None:
                     owner = OwnerDetails.objects.first()
-                    return render(request, 'users/uploading.html',{'owner':owner,'last_application':last_application})
+                    if level_of_Education == 'Secondary':
+                        if approved_sum_sec < last_application.funds_available_for_secondary_schools:
+                            return render(request, 'users/uploading.html',{'owner':owner,'last_application':last_application})
+                        else:
+                            context={
+                            'message':f"Applications for {level_of_Education} Schools Funds has been Suspended.",
+                            'owner':owner,
+                            }
+                            return render(request, 'users/404.html',context)
+                    else:
+                        if approved_sum_uni < last_application.funds_available_for_universities:
+                            return render(request, 'users/uploading.html',{'owner':owner,'last_application':last_application})
+                        else:
+                            context={
+                            'message':"Applications for Higher Education Fund has been Suspended.",
+                            'owner':owner,
+                            }
+                            return render(request, 'users/404.html',context)
+                           
+
                 else:
                     # return HttpResponse(f'You have already applied and your application status: {already.application_status}')
                     status = already.application_status
@@ -1486,8 +1500,8 @@ def apply(request):
                 context={
                 'message':"Deadline for Submission has passed or Application has been Suspended.",
                 'owner':owner,
-            }
-            return render(request, 'users/404.html',context)
+                }
+                return render(request, 'users/404.html',context)
                 # return HttpResponse(f'You passed the deadline which was {last_application.end_date}')
         else:
             # No Application instance exists
@@ -1592,7 +1606,7 @@ def generate_bursary_letter(request, user_id):
 
 
 
-# new application creation
+@staff_member_required
 def new_application(request):
     if request.method=='POST':
         id_for_reference = request.POST['id_for_reference']
@@ -1601,7 +1615,15 @@ def new_application(request):
         funds_available_for_universities = request.POST['funds_available_for_universities']
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
-        # is_active = request.POST['is_active']
+        is_active = request.POST['activation']
+        if is_active == 'Yes':
+            is_active = True
+        else:
+            is_active = False
+
+        if Application.objects.filter(id_for_reference=id_for_reference):
+            messages.error(request, f"Application with ID {id_for_reference} already exists. Try again!")
+            return redirect('new_application')
 
         application = Application(
             id_for_reference = id_for_reference,
@@ -1610,15 +1632,57 @@ def new_application(request):
             funds_available_for_universities = funds_available_for_universities,
             start_date = start_date,
             end_date = end_date,
-            is_active = True
+            is_active = is_active
         )
 
         application.save()
+        messages.info(request, f'New Application Has Been Created under {name_of_application}')
         return redirect('staff_dashboard')
     else:
 
         owner = OwnerDetails.objects.last()
-        return render(request, 'users/new_application.html',{"owner":owner})
+        current_application = Application.objects.last()
+        context = {
+            'current_application' : current_application,
+            'owner':owner,
+
+        }
+        return render(request, 'users/new_application.html',context)
+
+
+@staff_member_required
+def update_current_application(request):
+    if request.method=='POST':
+        id_for_reference = request.POST['id_for_reference']
+        name_of_application = request.POST['name_of_application']
+        funds_available_for_secondary_schools = request.POST['funds_available_for_secondary_schools']
+        funds_available_for_universities = request.POST['funds_available_for_universities']
+        start_date = request.POST['start_date']
+        end_date = request.POST['end_date']
+        is_active = request.POST['activation']
+        
+
+        application =Application.objects.filter(id_for_reference= id_for_reference).update(
+            id_for_reference = id_for_reference,
+            name_of_application = name_of_application,
+            funds_available_for_secondary_schools = funds_available_for_secondary_schools,
+            funds_available_for_universities = funds_available_for_universities,
+            start_date = start_date,
+            end_date = end_date,
+            is_active = is_active
+        )
+        messages.info(request, 'Current Application Has Been Updated.')
+        return redirect('staff_dashboard')
+    else:
+
+        owner = OwnerDetails.objects.last()
+        current_application = Application.objects.last()
+        context = {
+            'current_application' : current_application,
+            'owner':owner,
+
+        }
+        return render(request, 'users/new_application.html',context)
 
 @staff_member_required
 def approved_lst_pdf(request):
@@ -1712,3 +1776,51 @@ def approved_lst_pdf(request):
     response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{last_application}.pdf"'
     response.write(pdf.output(dest='S').encode('latin1'))
     return response
+
+
+
+
+@staff_member_required
+def forwarding_letter(request):
+    # current_application = Application.objects.last()
+    # approved_user_ids = UploadedDocuments.objects.filter(application_status='Approved', application=current_application).values_list('user_id', flat=True)
+    # approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids)
+    # # Get the unique institutions of approved users
+    # unique_institutions = PersonalDetails.objects.filter(user_id__in=approved_user_ids).values_list('institution', flat=True).distinct()
+    
+    # for inst in unique_institutions:
+    #     print(inst)
+    current_application = Application.objects.last()
+
+    # Get the user IDs of approved users in the current application
+    approved_user_ids = UploadedDocuments.objects.filter(application_status='Approved', application=current_application).values_list('user_id', flat=True)
+
+    # Get the PersonalDetails objects for approved users
+    approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids)
+
+    # Create a dictionary to store the grouped users by institution
+    grouped_users_by_institution = {}
+
+    # Group the approved users by their institution
+    for institution, users in groupby(approved_users_personal_details, key=lambda x: x.institution):
+        # Convert the 'users' iterator to a list to store all users for the institution
+        grouped_users_by_institution[institution] = list(users)
+
+    # Now, 'grouped_users_by_institution' contains a dictionary where keys are institutions, and values are lists of users for each institution.
+
+    context = {
+        'owner':OwnerDetails.objects.last(),
+        'grouped_users_by_institution':grouped_users_by_institution
+    }
+    return render(request, 'users/forwarding_letter.html',context)
+
+
+
+
+
+
+
+
+
+
+

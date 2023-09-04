@@ -51,6 +51,7 @@ class OwnerDetails(models.Model):
 class PersonalDetails(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     fullname = models.CharField(max_length=255)
+    education_level = models.CharField(max_length=20,null=True ,choices=[('Secondary', 'Secondary'), ('Higher_Education', 'Higher Education')])
     id_or_passport_no = models.CharField(max_length=255, null=True)
     gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female')])
     date_of_birth = models.DateField()
@@ -220,6 +221,9 @@ class UploadedDocuments(models.Model):
     funds_for = models.CharField(max_length=50, default='Undefined', null=True,choices=FUNDS_FOR)
     awarded = models.IntegerField(null=True, default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    approved_by = models.CharField(null= True,max_length=250)
+    urgency = models.CharField(default='not_Urgent', max_length=25, choices=[('urgent','Urgent'),('not_Urgent','Not Urgent')])
 
     def __str__(self):
         return self.user.first_name  + ' ' + self.user.last_name + ' - '+self.application_status

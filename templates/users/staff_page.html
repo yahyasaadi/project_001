@@ -84,6 +84,7 @@
                               <th>Funds For</th>
                               <th>View Profile</th>
                               <th>Awarding Letter</th>
+                              <th>Approved By</th>
                          </tr>
                     </thead>
                     <tr>
@@ -117,6 +118,9 @@
                               <td class="status">
                                    <a href="{% url 'generate_bursary_letter' disbursed_users_personal_details.user_id %}">Download</a>
                               </td>
+                              <td class="status">
+                                  <p>{{ status_for_all_disbursed.approved_by }}</p> 
+                              </td>
                          
                          </tr>
                          {% endfor %}
@@ -144,6 +148,7 @@
                               <th>Funds For</th>
                               <th>View Profile</th>
                               <th>Awarding Letter</th>
+                              <th>Approved By</th>
                          </tr>
                     </thead>
                     <tr>
@@ -176,6 +181,10 @@
                               </td>
                               <td class="status">
                                    <a href="{% url 'generate_bursary_letter' approved_applicant.user_id %}">Download</a>
+                              </td>
+                              <td class="status">
+                                   <p>{{ funds_awarded.approved_by }}</p> 
+
                               </td>
                          
                          </tr>

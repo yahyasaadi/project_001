@@ -359,6 +359,12 @@ table, p, h4, label{
                                 <option value="Funded">Funded</option>
                                 <option value="Disbursed">Disbursed</option>
                               </select>
+                              
+                              <label for="exampleInputEmail1">Urgency</label>
+                              <select name="urgency" class="form-control">
+                                <option value="not_Urgent">Not Urgent</option>
+                                <option value="urgent">Urgent</option>
+                              </select>
   
                             </div>
                             <div class="form-group">
@@ -376,9 +382,6 @@ table, p, h4, label{
                             <button type="submit" id="submitBtn" class="btn btn-primary">Submit</button>
                           </form>
                          </div>
-                        
-
-
                     </div>
                </nav>
                <main role="main" class="col-md-9 ml-sm-auto col-lg-10 my-3">
@@ -407,6 +410,11 @@ table, p, h4, label{
                                     <td>{{personal_details.fullname}}</td>
                                     
                                     </tr>
+                                    <tr>
+                                      <th scope="row">Date of Birth</th>
+                                      <td>{{personal_details.date_of_birth}}</td>
+                                      
+                                      </tr>
                                     <tr>
                                     <th scope="row">ID/Passport No.</th>
                                     <td>{{personal_details.id_or_passport_no}}</td>

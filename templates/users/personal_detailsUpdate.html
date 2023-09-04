@@ -24,6 +24,13 @@
                     <input required type="text" class="form-control" name='fullname' value="{{personal_details.fullname}}"  placeholder="Enter Full name">
                     
                   </div>
+                  <div class="form-group mb-2 mt-1">
+                    <label for="exampleInputEmail1">Level of Education</label>
+                    <select class="form-control" name='education_level'>
+                      <option value="Secondary">Secondary</option>
+                      <option value="Higher_Education">Higher Education</option>
+                    </select>
+                  </div>
                   <div class="form-group mt-2">
                     <label for="exampleInputEmail1">National ID/Passport Number</label>
                     <input required type="text" class="form-control" value="{{personal_details.id_or_passport_no}}" name="id_or_passport_no"  placeholder="Enter your National ID/Passport Number">
@@ -36,7 +43,7 @@
 
                   <div class="form-group mt-2">
                     <label for="exampleInputEmail1">Date of Birth</label>
-                    <input required type="date" class="form-control" value="{{personal_details.date_of_birth}}" name='date_of_birth'>
+                    <input required type="date" class="form-control" value="{{personal_details.date_of_birth|date:'Y-m-d'}}" name='date_of_birth'>
                     
                   </div>
                   <div class="form-group mt-2">
@@ -69,7 +76,7 @@
         <div class="col-md-6">
             <div class="jumbotron">
                 <div class="form-group mt-2">
-                    <label for="exampleInputEmail1">Name of Institution</label>
+                    <label for="exampleInputEmail1">Name of Institution (In Full)</label>
                     <input required type="text" class="form-control" value="{{personal_details.institution}}" name="institution"  placeholder="Enter the Name of Institution">
                     
                   </div>

@@ -22,8 +22,11 @@ urlpatterns = [
     path('download', views.generate_pdf, name="download"),
     path('apply', views.apply, name="apply"),
     path('new_application', views.new_application, name="new_application"),
+    path('forwarding_letter', views.forwarding_letter, name="forwarding_letter"),
+    
+    path('update_current_application', views.update_current_application, name="update_current_application"),
     path("generate_bursary_letter/<int:user_id>", views.generate_bursary_letter, name="generate_bursary_letter"),
-
+    
 
     path('user/<int:user_id>/', views.user_profile, name='user_profile'),
     path('students_dashboard/', views.studentsDashboard, name="students_dashboard"),
