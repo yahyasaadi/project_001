@@ -30,7 +30,7 @@ from .models import (
     )
 from fpdf import FPDF
 from datetime import datetime
-
+from num2words import num2words
 
 # Create your views here.
 @login_required
@@ -999,6 +999,8 @@ def generate_pdf(request):
         
         messages.error(request, 'Provide all the required information, including personal details, Family Info, Additional info, and Academic Performance. Ensure the information is accurate and verifiable.')
         return redirect('students_dashboard')
+    
+   
         
     response = HttpResponse(content_type='application/pdf')
     
@@ -1819,12 +1821,30 @@ def forwarding_letter_institution(request, institution):
     # Get the user IDs of approved users in the current application
     approved_user_ids = UploadedDocuments.objects.filter(application_status='Approved', application=current_application).values_list('user_id', flat=True)
     approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution)
+    approved_users_personal_details_id = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution).values_list('user_id', flat=True)
+
     personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution).last()
+    uploaded_users_data = UploadedDocuments.objects.filter(user_id__in=approved_users_personal_details_id,application=current_application)
     
+        # Assuming you have already filtered the queryset to include relevant documents
+    awarded_sum = UploadedDocuments.objects.filter(
+        user_id__in=approved_users_personal_details_id,  # Filter by user IDs
+        application=current_application,  # Filter by application
+    ).aggregate(total_awarded=Sum('awarded'))
+
+    # The 'total_awarded' key in the result dictionary contains the sum of 'awarded' values
+    total_awarded_value = awarded_sum.get('total_awarded', 0)  # Get the value or default to 0 if None
+    total_awarded_in_words = num2words(total_awarded_value)
+    total_awarded_in_words = total_awarded_in_words.title()
+
     Email_Address = request.user.email
     Constituency_Name = owner.name
     fullname=request.user.first_name + ' '+ request.user.last_name
-    current_date = datetime.now().strftime("%Y-%m-%d")
+    
+    current_date_formatted = date(datetime.now(), "F d, Y")
+    print(f"Date: {current_date_formatted}")
+
+
 
     pdf = FPDF()
 
@@ -1837,7 +1857,7 @@ def forwarding_letter_institution(request, institution):
     pdf.cell(0, 8, f"{Constituency_Name},", ln=True, align="R")
     pdf.multi_cell(0, 8, f"P. O. Box: 123456 - 70100,\n Garissa.", align="R")
     pdf.ln(4)
-    pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+    pdf.cell(0, 8, f"Date: {current_date_formatted}", ln=True, align="R")
 
     pdf.ln(6)
     pdf.cell(0, 8, f"Office of Student Finance,", ln=True, align="L")
@@ -1855,10 +1875,14 @@ def forwarding_letter_institution(request, institution):
     pdf.multi_cell(0, 8, f"RE: Notification of Bursary Award for the following students.")
     pdf.ln(3)
     pdf.set_font("Times", size=12)
+    pdf.multi_cell(0,8,f'Enclosed herewith find cheque no: 34343 amounting to Kshs {total_awarded_in_words} ({total_awarded_value}/=) only dated {current_date_formatted} in the benefit of the students listed below:-')
 
     # Create a table header
     pdf.set_fill_color(0, 191, 255)  # Light Blue
     pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(0,6, f"{institution}", ln=True, align="C")
+
+    pdf.cell(13, 10, "S/No.", 1, 0, 'C', 1)
     pdf.cell(70, 10, "Name", 1, 0, 'C', 1)
     pdf.cell(50, 10, "Admission Number", 1, 0, 'C', 1)
     pdf.cell(40, 10, "Amount Awarded", 1, 1, 'C', 1)
@@ -1866,13 +1890,27 @@ def forwarding_letter_institution(request, institution):
     # Create a table with student details
     pdf.set_fill_color(255, 255, 255)  # White
     pdf.set_font("Arial", size=12)
-    for student in approved_users_personal_details:
+    s_no = 1
+    for student, awarded_data in zip(approved_users_personal_details, uploaded_users_data):
+        pdf.cell(13, 10, str(s_no), 1)
         pdf.cell(70, 10, student.fullname, 1)
         pdf.cell(50, 10, student.admin_no, 1)
-        pdf.cell(40, 10, "4000000", 1, ln=True)
+        pdf.cell(40, 10, str(awarded_data.awarded), 1, ln=True)
+        s_no += 1
+        
+    pdf.set_font("Arial", style='B', size=12)
+    
+    pdf.cell(13, 10, "", 1, 0, 'C', 1)
+    pdf.cell(70, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(50, 10, "", 1, 0, 'C', 1)
+    pdf.cell(40, 10, str(total_awarded_value), 1, 1, 'L', 1)
+    pdf.set_font("Arial", size=12)
 
-
-
+    pdf.ln(10)
+    pdf.multi_cell(0,8,'Please acknowledge formally receipt of the above cheque and in case of any changes the CDF office has all the discretion to award any needy students.')
+    pdf.cell(0,8, "Thank you for your co-operation.")
+    pdf.ln(20)
+    pdf.cell(0,8,"Yours's Faithfully,")
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{institution}.pdf"'
@@ -1900,9 +1938,29 @@ def create_institution(request):
         messages.success(request, "Institution has been successfully created.")
         return redirect('create_institution')
     
+
+
+    try:
+        current_application = Application.objects.last()
+
+    except:
+        current_application = 'No Active Application.'
+
+    try:
+        awarded_id_list = User.objects.filter(last_name='Institution').values_list('id', flat=True)
+        awarded = UploadedDocuments.objects.filter(application=current_application, user_id__in=awarded_id_list)
+        
+        # Check if there are no awarded records
+        
+    except UploadedDocuments.DoesNotExist:
+        awarded = 'No Schools/Institution Has been Awarded yet.'
+
+
     context = {
         'owner':OwnerDetails.objects.last(),
-        'institutions':User.objects.filter(last_name='Institution')
+        'institutions':User.objects.filter(last_name='Institution'),
+        'application':current_application,
+        'awarded':awarded,
     }
     return render(request, 'users/create_institution.html',context)
 
@@ -1910,10 +1968,40 @@ def create_institution(request):
 
 @staff_member_required#
 def institution_profile(request, inst_name):
-
     institution = get_object_or_404(User, username=inst_name)
 
-    return HttpResponse(institution.first_name)
+    try:
+        current_application = Application.objects.last()
+
+    except:
+        current_application = 'Application is Created Yet.'
+    
+    if request.method == 'POST':
+        amount = request.POST["amount"]
+        if UploadedDocuments.objects.filter(application=current_application,user=institution):
+            messages.error(request, f"The {institution.first_name} already Awarded.")
+            return redirect('create_institution')
+        else:
+            awarding = UploadedDocuments(
+                user=institution,
+                awarded= amount,
+                funds_for = 'Secondary',
+                application_status = 'Disbursed',
+                application=current_application,
+                approved_by=request.user.first_name + " "+ request.user.last_name,
+            )
+            awarding.save()
+            messages.info(request, f"The {institution.first_name} has been Awarded {amount}.")
+            return redirect('create_institution')
+
+
+
+
+    context = {
+       'institution':institution,
+       'owner':OwnerDetails.objects.last() 
+    }
+    return render(request, "users/inst_award.html",context)
 
 
 
