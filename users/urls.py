@@ -24,6 +24,7 @@ urlpatterns = [
     path('new_application', views.new_application, name="new_application"),
     path('forwarding_letter', views.forwarding_letter, name="forwarding_letter"),
     path('institutions', views.create_institution, name="create_institution"),
+    path('reports', views.reports, name="reports"),
     
     path('update_current_application', views.update_current_application, name="update_current_application"),
     path("generate_bursary_letter/<int:user_id>", views.generate_bursary_letter, name="generate_bursary_letter"),
@@ -32,6 +33,7 @@ urlpatterns = [
     path('user/<int:user_id>/', views.user_profile, name='user_profile'),
     path('institution/<str:inst_name>/', views.institution_profile, name='institution_profile'),
     path('forwarding_letter_institution/<str:institution>/', views.forwarding_letter_institution, name='forwarding_letter_institution'),
+    path('report/<str:id>/', views.any_reports, name='any_reports'),
 
     path('students_dashboard/', views.studentsDashboard, name="students_dashboard"),
     path('list_of_applicants/', views.list_of_applicants, name="list_of_applicants"),

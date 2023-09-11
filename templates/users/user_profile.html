@@ -721,15 +721,12 @@ table, p, h4, label{
         
                             <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.students_id_card }}">students_id_card </a><br>
                             {% endif %}
-                            {% if uploaded_docs.birth_certificate %}
+
+                            {% if uploaded_docs.id_card_birth_certificate %}
                             
-                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.birth_certificate }}">Birth Certificate </a><br>
+                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.id_card_birth_certificate }}">ID Card or Birth Certificate </a><br>
                             {%endif%}
         
-                            {% if uploaded_docs.id_card %}
-        
-                            <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.id_card }}">ID Card</a><br>
-                            {%endif%}
                             {% if uploaded_docs.parents_death_certificate %}
         
                             <a class="btn btn-primary mt-2" target="_blank" href="/media/{{ uploaded_docs.parents_death_certificate }}">Parents Death Certificate</a><br>

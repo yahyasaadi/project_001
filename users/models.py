@@ -43,6 +43,13 @@ class OwnerDetails(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     county = models.CharField(max_length=100)
+    p_o_box = models.CharField(max_length=255, null=True)
+    p_o_box_location = models.CharField(max_length=255, null=True)
+    location = models.CharField(max_length=255, null=True)
+    phone_number = models.CharField(max_length=255, null=True)
+    generation_email = models.CharField(max_length=255, null=True)
+    manager_email = models.CharField(max_length=255, null=True)
+    name_of_the_chairperson = models.CharField(max_length=255, null=True)
 
 
     def __str__(self):
@@ -211,8 +218,7 @@ class UploadedDocuments(models.Model):
     transcript_report_form = models.FileField(upload_to='documents/transcripts/',null=True)
     parents_guardians_id_card = models.FileField(upload_to='documents/id_cards/', blank=True, null=True)
     students_id_card = models.FileField(upload_to='documents/students_id_cards/', blank=True, null=True)
-    birth_certificate = models.FileField(upload_to='documents/birth_certificates/', blank=True, null=True)
-    id_card = models.FileField(upload_to='documents/school_id_cards/', blank=True, null=True)
+    id_card_birth_certificate = models.FileField(upload_to='documents/school_id_cards/', blank=True, null=True)
     parents_death_certificate = models.FileField(upload_to='documents/death_certificates/', blank=True, null=True)
     fees_structure = models.FileField(upload_to='documents/fees_structures/',null=True)
     admission_letters = models.FileField(upload_to='documents/admission_letters/', blank=True, null=True)

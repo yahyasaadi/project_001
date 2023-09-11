@@ -1038,9 +1038,9 @@ def generate_pdf(request):
     pdf.image(image_path, x=pdf.w / 2 - img_width / 2, y=pdf.get_y(), w=img_width)
     pdf.ln(20)
     pdf.set_font("Times", 'B', 22)
-    pdf.cell(0, 10, f"{owner.name} Bursary", ln=True, align='C')
+    pdf.cell(0, 10, f"{owner.county} Bursary", ln=True, align='C')
     pdf.set_font("Times", 'B', 8)
-    pdf.cell(0, 5, f"P.O. BOX 732-90200, {owner.name}. TEL: 0734-909- 303 & 0726242177. Email.cdfdadaab@ngcdf.go.ke", ln=True, align='C')
+    pdf.cell(0, 5, f"{owner.p_o_box}, {owner.location}. TEL: {owner.phone_number}. Email:{owner.generation_email}/{owner.manager_email}", ln=True, align='C')
     
     pdf.ln(4)
     pdf.set_font("Times", 'B', 16)
@@ -1530,7 +1530,8 @@ def generate_bursary_letter(request, user_id):
     course_name = personal_details.course
     Constituency_Name = owner.name
     fullname=request.user.first_name + ' '+ request.user.last_name
-    current_date = datetime.now().strftime("%Y-%m-%d")
+
+    current_date_formatted = date(datetime.now(), "F d, Y")
 
     UploadedDocuments.objects.filter(user=user1,application=last_application).update(
         application_status = 'Disbursed'
@@ -1545,25 +1546,57 @@ def generate_bursary_letter(request, user_id):
 
     pdf.add_page()
 
-    pdf.set_font("Times", 'B', size=12)
+    pdf.set_font("Times", 'B', size=10)
+
+        # Specify the image path and original width
+    image_path = 'static/images/overall.jpg'
+    original_img_width = 50  # Adjust this to the original width of your image
+
+    # Calculate the new width for the image (e.g., half of the original width)
+    img_width = original_img_width / 2
+
+    # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+    pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
 
     # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
-    pdf.cell(0, 8, f"{fullname},", ln=True, align="R")
-    pdf.cell(0, 8, f"{Constituency_Name},", ln=True, align="R")
-    pdf.multi_cell(0, 8, f"P. O. Box: 123456 - 70100,\n Garissa.", align="R")
+    pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+    pdf.cell(0, 4, f"{Constituency_Name}", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+    pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+    pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+    pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
     pdf.ln(4)
-    pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+    pdf.ln(4)
+   
+    pdf.set_line_width(2)
+
+    # Define the starting X and Y coordinates for the line
+    x1 = 10  # 20px from the left margin
+    x2 = pdf.w - 10  # 20px from the right margin
+    y = pdf.get_y()  # Maintain the current Y position
+
+    # Draw a horizontal line by drawing a line
+    pdf.line(x1, y, x2, y)
+    pdf.set_line_width(0.5)
+    pdf.ln(4)
+
+    pdf.cell(0, 4, f"REF:..................................................................................................", align="L")
+    pdf.cell(0, 4, f"{current_date_formatted}", ln=True, align="R")
+
 
     pdf.ln(6)
-    pdf.cell(0, 8, f"Office of Student Finance,", ln=True, align="L")
-    pdf.cell(0, 8, f"{institution_name},", ln=True, align="L")
-    pdf.cell(0, 8, f"P. O. Box: {personal_details.institution_postal_address},", ln=True, align="L")
-    pdf.cell(0, 8, f"Campus/Branch: {personal_details.campus_or_branch}.", ln=True, align="L")
+    pdf.cell(0, 5.5, f"The Finance Department,", ln=True, align="L")
+    pdf.cell(0, 5.5, f"{personal_details.institution},", ln=True, align="L")
+    pdf.cell(0, 5.5, f"P. O. Box: {personal_details.institution_postal_address},", ln=True, align="L")
+
     
     pdf.ln(5)
-    pdf.set_font("Times", size=12)
+    pdf.set_font("Times", 'B', size=12)
 
     pdf.cell(0,6, "Dear Sir/Madam,", ln=True, align="L")
+    pdf.ln(3)
 
     pdf.set_font("Times", 'B', size=12)
 
@@ -1589,16 +1622,19 @@ def generate_bursary_letter(request, user_id):
         f"accept our warm congratulations on this remarkable achievement.\n\n"
         f"If you require any further information or documentation related to the bursary award, please do not "
         f"hesitate to contact our office.\n\n"
-        f"Thank you for your support and cooperation.\n\n"
-        f"Sincerely,\n\n"
-        f"{fullname}\n"
-        f"{Constituency_Name} Constituency Development Fund (CDF)\n"
-        f"{Email_Address}\n"
-
     )
 
     pdf.multi_cell(0, 5, letter_content)
+
+    pdf.cell(0,6, "Thank you for your co-operation.")
     pdf.ln(10)
+    pdf.cell(0,6,"Yours's Faithfully,")
+    pdf.ln(15)
+    pdf.cell(0,6,f"{owner.name_of_the_chairperson},", ln=True)
+   
+    pdf.cell(0,6,"CDF Chairperson.", ln=True)
+
+    pdf.cell(0,6,f"{owner.name}.", ln=True)
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{recipient_name}.pdf"'
@@ -1686,96 +1722,277 @@ def update_current_application(request):
         }
         return render(request, 'users/new_application.html',context)
 
+
+################################################ ANALYSIS ##########################
 @staff_member_required
 def approved_lst_pdf(request):
     last_application = Application.objects.last()
     owner = OwnerDetails.objects.last()
+    approved_sum = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).aggregate(Sum('awarded'))['awarded__sum']
 
-    all_approved = UploadedDocuments.objects.filter(application_status='Approved', application=last_application).values_list('user_id', flat=True)
-    all_disbursed = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).values_list('user_id', flat=True)
+    # all_approved = UploadedDocuments.objects.filter(application_status='Approved', application=last_application).values_list('user_id', flat=True)
+    all_disbursed_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').values_list('user_id', flat=True)
 
-    approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_approved)
-    disbursed_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_disbursed)
+    # approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_approved)
+    disbursed_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_disbursed_higher)
 
-    approved_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_approved)
-    disbursed_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_disbursed)
+    # approved_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_approved)
+    disbursed_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_disbursed_higher)
+    # Count the number of records with application_status set to 'Disbursed'
+    disbursed_count = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).count()
 
+    disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for = 'Secondary').count()
+    disbursed_high = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for="Higher_Education").count()
+
+    # Now, disbursed_count contains the count of 'Disbursed' records
+
+
+   
     pdf = FPDF()
+
     pdf.add_page()
-    # pdf.set_font("Times", 'B', size=12)
+
+    pdf.set_font("Times", 'B', size=10)
+
+        # Specify the image path and original width
     image_path = 'static/images/overall.jpg'
     original_img_width = 50  # Adjust this to the original width of your image
-    img_width = original_img_width / 2  # Half of the original width
-    pdf.image(image_path, x=pdf.w / 2 - img_width / 2, y=pdf.get_y(), w=img_width)
-    pdf.ln(20)
-    pdf.set_font("Times", 'B', 22)
-    pdf.cell(0, 10, f"{owner.name} Bursary", ln=True, align='C')
-    pdf.set_font("Times", 'B', 8)
-    pdf.cell(0, 5, f"P.O. BOX 732-90200, {owner.name}. TEL: 0734-909- 303 & 0726242177. Email.cdfdadaab@ngcdf.go.ke", ln=True, align='C')
-    pdf.ln(8)
-    pdf.set_font("Times", 'B', 22)
-    pdf.cell(0, 6, f"List of Approved Recipient for {last_application.name_of_application}", ln=True, align='C')
-    pdf.ln(8)
+
+    # Calculate the new width for the image (e.g., half of the original width)
+    img_width = original_img_width / 2
+
+    # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+    pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
+
+    # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+    pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.name}", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+    pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+    pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+    pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
+    pdf.ln(4)
+    pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+    pdf.ln(4)
+   
+    pdf.set_line_width(2)
+
+    # Define the starting X and Y coordinates for the line
+    x1 = 10  # 20px from the left margin
+    x2 = pdf.w - 10  # 20px from the right margin
+    y = pdf.get_y()  # Maintain the current Y position
+
+    # Draw a horizontal line by drawing a line
+    pdf.line(x1, y, x2, y)
+    pdf.set_line_width(0.5)
+    pdf.ln(4)
+    pdf.set_font("Arial", style='B', size=16)
+
+    pdf.cell(0,6, f"Report of {last_application.name_of_application}", ln=True, align="C")
+    pdf.ln(4)
+
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 5, f"Education plays a pivotal role in the development of individuals and communities, serving as a catalyst for progress and empowerment. In line with this belief, the Constituency Development Fund (CDF) - {owner.name} for the year {last_application.id_for_reference} embarked on a mission to transform lives through the provision of bursaries to deserving students within our constituency. This report serves as a comprehensive account of our commitment to enhancing educational opportunities and fostering a brighter future for our youth.")
+    pdf.ln(4)
+    pdf.multi_cell(0,5, 'The year {fy} marked a significant milestone as the CDF allocated substantial resources, amounting to Kshs. {t:,} to support the education of students in our constituency. These bursaries aimed not only to alleviate the financial burdens of students and their families but also to empower them to pursue higher education or secondary education and achieve their dreams.'.format(fy=last_application.id_for_reference,t=last_application.funds_available_for_secondary_schools + last_application.funds_available_for_universities))
+    pdf.ln(4)
+    pdf.multi_cell(0,5,"This report stands as a testament to the power of education, the unwavering support of the CDF, and the resilience of our students. It is a reflection of our collective commitment to nurturing talent, fostering academic achievement, and building a brighter future for our constituency.")
+
+    pdf.ln(4)
+
+     # Create a table header
+    pdf.set_fill_color(0, 191, 255)  # Light Blue
+    pdf.set_font("Arial",  size=10)
+    pdf.cell(0,6, "Overview", ln=True, align="L")
+    pdf.ln(3)
+
+    pdf.cell(115, 10, "Item", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Details", 1, 1, 'L', 1)
     
-    col_width = pdf.w / 6.6
-    row_height = pdf.font_size + 6
 
-    # Header row
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(col_width, row_height, 'Full Name', border=1)
-    pdf.cell(col_width, row_height, 'Gender', border=1)
-    pdf.cell(col_width, row_height, 'Institution', border=1)
-    pdf.cell(col_width, row_height, 'Campus / Branch', border=1)
-    pdf.cell(col_width, row_height, 'Awarded Amount', border=1)
-    pdf.cell(col_width, row_height, 'Funds For', border=1)
-    pdf.ln(row_height)
+    pdf.cell(115, 10, "Financial Year", 1)
+    pdf.cell(60, 10, f"{last_application.id_for_reference}", 1,ln=True)
 
-    # Data rows
-    pdf.set_font('Arial', '', 10)
-    for row, item2 in zip(approved_users_personal_details,approved_users_awarded) :
-        pdf.cell(col_width, row_height, str(row.fullname), border=1)
-        pdf.cell(col_width, row_height, str(row.gender), border=1)
-        pdf.cell(col_width, row_height, str(row.institution), border=1)
-        pdf.cell(col_width, row_height, str(row.campus_or_branch), border=1)
-        pdf.cell(col_width, row_height, str(item2.awarded), border=1)
-        pdf.cell(col_width, row_height, str(item2.funds_for), border=1)
-        pdf.ln(row_height)
+    pdf.cell(115, 10, "Commencement Date", 1)
+    pdf.cell(60, 10, f"{last_application.start_date}", 1,ln=True)
 
-    pdf.ln(8)
-    pdf.set_font("Times", 'B', 22)
-    pdf.cell(0, 6, f"List of Applicants who Received Funds for {last_application.name_of_application}", ln=True, align='C')
-    pdf.ln(8)
+    pdf.cell(115, 10, "Conclusion Date", 1)
+    pdf.cell(60, 10, f"{last_application.end_date}", 1,ln=True)
+
+##################Applicants####
+    pdf.cell(115, 10, "Total Number of Applicants", 1)
+    pdf.cell(60, 10, f"{last_application.number_of_applicant}", 1,ln=True)
+
+    pdf.cell(115, 10, "Number of Applicants Approved", 1)
+    pdf.cell(60, 10, f"{disbursed_count}", 1,ln=True)
 
 
-    col_width = pdf.w / 6.6
-    row_height = pdf.font_size + 6
+#############Approved sec
+    pdf.cell(115, 10, "Number of Applicants Benefited in Secondary", 1)
+    pdf.cell(60, 10, f"{disbursed_sec}", 1,ln=True)
+#############Approved shigh
 
-    # Header row
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(col_width, row_height, 'Full Name', border=1)
-    pdf.cell(col_width, row_height, 'Gender', border=1)
-    pdf.cell(col_width, row_height, 'Institution', border=1)
-    pdf.cell(col_width, row_height, 'Campus / Branch', border=1)
-    pdf.cell(col_width, row_height, 'Awarded Amount', border=1)
-    pdf.cell(col_width, row_height, 'Funds For', border=1)
-    pdf.ln(row_height)
+    pdf.cell(115, 10, "Number of Applicants Benefited in Higher Education", 1)
+    pdf.cell(60, 10, f"{disbursed_high}", 1,ln=True)
 
-    # Data rows
-    pdf.set_font('Arial', '', 10)
-    for row, item2 in zip(disbursed_users_personal_details,disbursed_users_awarded) :
-        pdf.cell(col_width, row_height, str(row.fullname), border=1)
-        pdf.cell(col_width, row_height, str(row.gender), border=1)
-        pdf.cell(col_width, row_height, str(row.institution), border=1)
-        pdf.cell(col_width, row_height, str(row.campus_or_branch), border=1)
-        pdf.cell(col_width, row_height, str(item2.awarded), border=1)
-        pdf.cell(col_width, row_height, str(item2.funds_for), border=1)
-        pdf.ln(row_height)
 
-    pdf.ln(8)
+    pdf.cell(115, 10, "Funds Allocated for Secondary Schools", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(last_application.funds_available_for_secondary_schools), 1,ln=True)
 
+
+    pdf.cell(115, 10, "Funds Allocated for Higher Education", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(last_application.funds_available_for_universities), 1,ln=True)
+
+
+##################distributed
+    dis_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum']
+    dis_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum']
+
+    pdf.cell(115, 10, "Funds Disbursed to Secondary Schools", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(dis_sec), 1,ln=True)
+
+
+    pdf.cell(115, 10, "Funds Disbursed for Higher Education", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(dis_higher), 1,ln=True)
+
+
+##################remaining
+    remain_sec = last_application.funds_available_for_secondary_schools - dis_sec
+    remain_higher = last_application.funds_available_for_universities - dis_higher
+    pdf.cell(115, 10, "Remaining Funds for Secondary Schools", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(remain_sec), 1,ln=True)
+
+
+    pdf.cell(115, 10, "Remaining Funds for Higher Education", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(remain_higher), 1,ln=True)
+
+
+
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.ln(14)
+
+    pdf.cell(0,6, "[i] Higher Education", ln=True, align="L")
+    pdf.set_font("Arial", style='B', size=8)
+
+
+    pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+    pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+    pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+    # Create a table with student details
+    pdf.set_fill_color(255, 255, 255)  # White
+    pdf.set_font("Arial", size=8)
+    s_no = 1
+    total = 0
+    for student, awarded_data in zip(disbursed_users_personal_details, disbursed_users_awarded):
+        pdf.cell(9, 10, str(s_no), 1)
+        pdf.cell(60, 10, student.fullname, 1)
+        pdf.cell(15, 10, student.gender, 1)
+        pdf.cell(80, 10, student.institution, 1)
+        pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+        total +=awarded_data.awarded
+        s_no += 1
+        
+    pdf.set_font("Arial", style='B', size=10)
+    
+    pdf.cell(9, 10, "", 1, 0, 'C', 1)
+    pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(15, 10, "", 1, 0, 'L', 1)
+    pdf.cell(80, 10, "", 1, 0, 'C', 1)
+    pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+    pdf.set_font("Arial", size=12)
+
+
+    # #########################SEC ##########################
+     #######sec_data
+    all_disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').values_list('user_id', flat=True)
+    disbursed_users_personal_details_sec = PersonalDetails.objects.filter(user_id__in=all_disbursed_sec)
+    disbursed_users_awarded_sec = UploadedDocuments.objects.filter(user_id__in=all_disbursed_sec)
+   
+    pdf.ln(20)
+
+     # Create a table header
+    pdf.set_fill_color(0, 191, 255)  # Light Blue
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(0,6, f"[ii] Secondary Education", ln=True, align="L")
+    pdf.set_font("Arial", style='B', size=8)
+
+
+    pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+    pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+    pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+    # Create a table with student details
+    pdf.set_fill_color(255, 255, 255)  # White
+    pdf.set_font("Arial", size=8)
+    s_no = 1
+    total = 0
+    for student, awarded_data in zip(disbursed_users_personal_details_sec, disbursed_users_awarded_sec):
+        pdf.cell(9, 10, str(s_no), 1)
+        pdf.cell(60, 10, student.fullname, 1)
+        pdf.cell(15, 10, student.gender, 1)
+        pdf.cell(80, 10, student.institution, 1)
+        pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+        total +=awarded_data.awarded
+        s_no += 1
+        
+    pdf.set_font("Arial", style='B', size=10)
+    
+    pdf.cell(9, 10, "", 1, 0, 'C', 1)
+    pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(15, 10, "", 1, 0, 'L', 1)
+    pdf.cell(80, 10, "", 1, 0, 'C', 1)
+    pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+    pdf.set_font("Arial", size=12)
+
+    ####institution
+    ###inst data
+    try:
+        awarded_id_list = User.objects.filter(last_name='Institution').values_list('id', flat=True)
+        awarded = UploadedDocuments.objects.filter(application=last_application, user_id__in=awarded_id_list)
+        
+        # Check if there are no awarded records
+        
+    except UploadedDocuments.DoesNotExist:
+        awarded = 'No Schools/Institution Has been Awarded yet.'
+
+   
+    pdf.ln(20)
+    pdf.set_fill_color(0, 191, 255)  # Light Blue
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(0,6, f"[iii] Institutions", ln=True, align="L")
+    pdf.set_font("Arial", style='B', size=8)
+
+    pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+    pdf.cell(60+95, 10, "Institution Name", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+    s_no = 1
+    total = 0
+    for awards in awarded:
+        pdf.cell(9, 10, str(s_no), 1)
+        pdf.cell(60+95, 10, awards.user.first_name, 1)
+        pdf.cell(20, 10, "{:,}".format(awards.awarded), 1, ln=True)
+        total += awards.awarded
+        s_no += 1
+    
+    pdf.set_font("Arial", style='B', size=10)
+    
+    pdf.cell(9, 10, "", 1, 0, 'C', 1)
+    pdf.cell(60+95, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+ 
+    pdf.ln(20)
+    pdf.set_font("Arial", style='B', size=16)
+    pdf.cell(0,6, "Total Amount Disbursed = {:,}".format(approved_sum), ln=True, align="L")
 
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{last_application}.pdf"'
+    response["Content-Disposition"] = f'attachment; filename="Report-{owner.county}-{last_application}.pdf"'
     response.write(pdf.output(dest='S').encode('latin1'))
     return response
 
@@ -1811,7 +2028,308 @@ def forwarding_letter(request):
 
 
 
+@staff_member_required
+def any_reports(request, id):
+    j = id[:4]
+    k = id[4:]
+    l = j + '/' + k
+    l = str(l)
+    print(l)
 
+    
+
+
+
+
+@staff_member_required
+def reports(request):
+    if request.method == 'POST':
+        id = request.POST['id']
+        print(f"Printing Id :   {id}")
+        last_application = Application.objects.get(id_for_reference=id)
+       
+        
+
+        owner = OwnerDetails.objects.last()
+        approved_sum = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).aggregate(Sum('awarded'))['awarded__sum']
+
+        # all_approved = UploadedDocuments.objects.filter(application_status='Approved', application=last_application).values_list('user_id', flat=True)
+        all_disbursed_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').values_list('user_id', flat=True)
+
+        # approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_approved)
+        disbursed_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_disbursed_higher)
+
+        # approved_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_approved)
+        disbursed_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_disbursed_higher)
+        # Count the number of records with application_status set to 'Disbursed'
+        disbursed_count = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).count()
+
+        disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for = 'Secondary').count()
+        disbursed_high = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for="Higher_Education").count()
+
+        # Now, disbursed_count contains the count of 'Disbursed' records
+
+
+    
+        pdf = FPDF()
+
+        pdf.add_page()
+
+        pdf.set_font("Times", 'B', size=10)
+
+            # Specify the image path and original width
+        image_path = 'static/images/overall.jpg'
+        original_img_width = 50  # Adjust this to the original width of your image
+
+        # Calculate the new width for the image (e.g., half of the original width)
+        img_width = original_img_width / 2
+
+        # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+        pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
+
+        # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+        pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+        pdf.cell(0, 4, f"{owner.name}", ln=True, align="R")
+        pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+        pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+        pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+        pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
+        pdf.ln(4)
+        pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+        pdf.ln(4)
+    
+        pdf.set_line_width(2)
+
+        # Define the starting X and Y coordinates for the line
+        x1 = 10  # 20px from the left margin
+        x2 = pdf.w - 10  # 20px from the right margin
+        y = pdf.get_y()  # Maintain the current Y position
+
+        # Draw a horizontal line by drawing a line
+        pdf.line(x1, y, x2, y)
+        pdf.set_line_width(0.5)
+        pdf.ln(4)
+        pdf.set_font("Arial", style='B', size=16)
+
+        pdf.cell(0,6, f"Report of {last_application.name_of_application}", ln=True, align="C")
+        pdf.ln(4)
+
+        pdf.set_font("Arial", size=12)
+        pdf.multi_cell(0, 5, f"Education plays a pivotal role in the development of individuals and communities, serving as a catalyst for progress and empowerment. In line with this belief, the Constituency Development Fund (CDF) - {owner.name} for the year {last_application.id_for_reference} embarked on a mission to transform lives through the provision of bursaries to deserving students within our constituency. This report serves as a comprehensive account of our commitment to enhancing educational opportunities and fostering a brighter future for our youth.")
+        pdf.ln(4)
+        pdf.multi_cell(0,5, 'The year {fy} marked a significant milestone as the CDF allocated substantial resources, amounting to Kshs. {t:,} to support the education of students in our constituency. These bursaries aimed not only to alleviate the financial burdens of students and their families but also to empower them to pursue higher education or secondary education and achieve their dreams.'.format(fy=last_application.id_for_reference,t=last_application.funds_available_for_secondary_schools + last_application.funds_available_for_universities))
+        pdf.ln(4)
+        pdf.multi_cell(0,5,"This report stands as a testament to the power of education, the unwavering support of the CDF, and the resilience of our students. It is a reflection of our collective commitment to nurturing talent, fostering academic achievement, and building a brighter future for our constituency.")
+
+        pdf.ln(4)
+
+        # Create a table header
+        pdf.set_fill_color(0, 191, 255)  # Light Blue
+        pdf.set_font("Arial",  size=10)
+        pdf.cell(0,6, "Overview", ln=True, align="L")
+        pdf.ln(3)
+
+        pdf.cell(115, 10, "Item", 1, 0, 'L', 1)
+        pdf.cell(60, 10, "Details", 1, 1, 'L', 1)
+        
+
+        pdf.cell(115, 10, "Financial Year", 1)
+        pdf.cell(60, 10, f"{last_application.id_for_reference}", 1,ln=True)
+
+        pdf.cell(115, 10, "Commencement Date", 1)
+        pdf.cell(60, 10, f"{last_application.start_date}", 1,ln=True)
+
+        pdf.cell(115, 10, "Conclusion Date", 1)
+        pdf.cell(60, 10, f"{last_application.end_date}", 1,ln=True)
+
+    ##################Applicants####
+        pdf.cell(115, 10, "Total Number of Applicants", 1)
+        pdf.cell(60, 10, f"{last_application.number_of_applicant}", 1,ln=True)
+
+        pdf.cell(115, 10, "Number of Applicants Approved", 1)
+        pdf.cell(60, 10, f"{disbursed_count}", 1,ln=True)
+
+
+    #############Approved sec
+        pdf.cell(115, 10, "Number of Applicants Benefited in Secondary", 1)
+        pdf.cell(60, 10, f"{disbursed_sec}", 1,ln=True)
+    #############Approved shigh
+
+        pdf.cell(115, 10, "Number of Applicants Benefited in Higher Education", 1)
+        pdf.cell(60, 10, f"{disbursed_high}", 1,ln=True)
+
+
+        pdf.cell(115, 10, "Funds Allocated for Secondary Schools", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(last_application.funds_available_for_secondary_schools), 1,ln=True)
+
+
+        pdf.cell(115, 10, "Funds Allocated for Higher Education", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(last_application.funds_available_for_universities), 1,ln=True)
+
+
+    ##################distributed
+        dis_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum']
+        dis_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum']
+
+        pdf.cell(115, 10, "Funds Disbursed to Secondary Schools", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(dis_sec), 1,ln=True)
+
+
+        pdf.cell(115, 10, "Funds Disbursed for Higher Education", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(dis_higher), 1,ln=True)
+
+
+    ##################remaining
+        remain_sec = last_application.funds_available_for_secondary_schools - dis_sec
+        remain_higher = last_application.funds_available_for_universities - dis_higher
+        pdf.cell(115, 10, "Remaining Funds for Secondary Schools", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(remain_sec), 1,ln=True)
+
+
+        pdf.cell(115, 10, "Remaining Funds for Higher Education", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(remain_higher), 1,ln=True)
+
+
+
+        pdf.set_font("Arial", style='B', size=12)
+        pdf.ln(14)
+
+        pdf.cell(0,6, "[i] Higher Education", ln=True, align="L")
+        pdf.set_font("Arial", style='B', size=8)
+
+
+        pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+        pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+        pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+        pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
+        pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+        # Create a table with student details
+        pdf.set_fill_color(255, 255, 255)  # White
+        pdf.set_font("Arial", size=8)
+        s_no = 1
+        total = 0
+        for student, awarded_data in zip(disbursed_users_personal_details, disbursed_users_awarded):
+            pdf.cell(9, 10, str(s_no), 1)
+            pdf.cell(60, 10, student.fullname, 1)
+            pdf.cell(15, 10, student.gender, 1)
+            pdf.cell(80, 10, student.institution, 1)
+            pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+            total +=awarded_data.awarded
+            s_no += 1
+            
+        pdf.set_font("Arial", style='B', size=10)
+        
+        pdf.cell(9, 10, "", 1, 0, 'C', 1)
+        pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+        pdf.cell(15, 10, "", 1, 0, 'L', 1)
+        pdf.cell(80, 10, "", 1, 0, 'C', 1)
+        pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+        pdf.set_font("Arial", size=12)
+
+
+        # #########################SEC ##########################
+        #######sec_data
+        all_disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').values_list('user_id', flat=True)
+        disbursed_users_personal_details_sec = PersonalDetails.objects.filter(user_id__in=all_disbursed_sec)
+        disbursed_users_awarded_sec = UploadedDocuments.objects.filter(user_id__in=all_disbursed_sec)
+    
+        pdf.ln(20)
+
+        # Create a table header
+        pdf.set_fill_color(0, 191, 255)  # Light Blue
+        pdf.set_font("Arial", style='B', size=12)
+        pdf.cell(0,6, f"[ii] Secondary Education", ln=True, align="L")
+        pdf.set_font("Arial", style='B', size=8)
+
+
+        pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+        pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+        pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+        pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
+        pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+        # Create a table with student details
+        pdf.set_fill_color(255, 255, 255)  # White
+        pdf.set_font("Arial", size=8)
+        s_no = 1
+        total = 0
+        for student, awarded_data in zip(disbursed_users_personal_details_sec, disbursed_users_awarded_sec):
+            pdf.cell(9, 10, str(s_no), 1)
+            pdf.cell(60, 10, student.fullname, 1)
+            pdf.cell(15, 10, student.gender, 1)
+            pdf.cell(80, 10, student.institution, 1)
+            pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+            total +=awarded_data.awarded
+            s_no += 1
+            
+        pdf.set_font("Arial", style='B', size=10)
+        
+        pdf.cell(9, 10, "", 1, 0, 'C', 1)
+        pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+        pdf.cell(15, 10, "", 1, 0, 'L', 1)
+        pdf.cell(80, 10, "", 1, 0, 'C', 1)
+        pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+        pdf.set_font("Arial", size=12)
+
+        ####institution
+        ###inst data
+        try:
+            awarded_id_list = User.objects.filter(last_name='Institution').values_list('id', flat=True)
+            awarded = UploadedDocuments.objects.filter(application=last_application, user_id__in=awarded_id_list)
+            
+            # Check if there are no awarded records
+            
+        except UploadedDocuments.DoesNotExist:
+            awarded = 'No Schools/Institution Has been Awarded yet.'
+
+    
+        pdf.ln(20)
+        pdf.set_fill_color(0, 191, 255)  # Light Blue
+        pdf.set_font("Arial", style='B', size=12)
+        pdf.cell(0,6, f"[iii] Institutions", ln=True, align="L")
+        pdf.set_font("Arial", style='B', size=8)
+
+        pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+        pdf.cell(60+95, 10, "Institution Name", 1, 0, 'L', 1)
+        pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+        s_no = 1
+        total = 0
+        for awards in awarded:
+            pdf.cell(9, 10, str(s_no), 1)
+            pdf.cell(60+95, 10, awards.user.first_name, 1)
+            pdf.cell(20, 10, "{:,}".format(awards.awarded), 1, ln=True)
+            total += awards.awarded
+            s_no += 1
+        
+        pdf.set_font("Arial", style='B', size=10)
+        
+        pdf.cell(9, 10, "", 1, 0, 'C', 1)
+        pdf.cell(60+95, 10, "TOTAL", 1, 0, 'L', 1)
+        pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+    
+        pdf.ln(20)
+        pdf.set_font("Arial", style='B', size=16)
+        pdf.cell(0,6, "Total Amount Disbursed = {:,}".format(approved_sum), ln=True, align="L")
+
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="Report-{owner.county}-{last_application}.pdf"'
+        response.write(pdf.output(dest='S').encode('latin1'))
+        return response
+    try:
+        all_application = Application.objects.all()
+
+    except Application.DoesNotExist:
+        all_application = "No Active Application."
+
+    context = {
+        'owner':OwnerDetails.objects.last(),
+        'last_application':Application.objects.last(),
+        'all_applications':all_application,
+    }
+    return render(request, 'users/reports.html',context)
 
 @staff_member_required
 def forwarding_letter_institution(request, institution):
@@ -1842,7 +2360,7 @@ def forwarding_letter_institution(request, institution):
     fullname=request.user.first_name + ' '+ request.user.last_name
     
     current_date_formatted = date(datetime.now(), "F d, Y")
-    print(f"Date: {current_date_formatted}")
+    # print(f"Date: {current_date_formatted}")
 
 
 
@@ -1850,70 +2368,127 @@ def forwarding_letter_institution(request, institution):
 
     pdf.add_page()
 
-    pdf.set_font("Times", 'B', size=12)
+    pdf.set_font("Times", 'B', size=10)
+
+        # Specify the image path and original width
+    image_path = 'static/images/overall.jpg'
+    original_img_width = 50  # Adjust this to the original width of your image
+
+    # Calculate the new width for the image (e.g., half of the original width)
+    img_width = original_img_width / 2
+
+    # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+    pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
 
     # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
-    pdf.cell(0, 8, f"{fullname},", ln=True, align="R")
-    pdf.cell(0, 8, f"{Constituency_Name},", ln=True, align="R")
-    pdf.multi_cell(0, 8, f"P. O. Box: 123456 - 70100,\n Garissa.", align="R")
+    pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+    pdf.cell(0, 4, f"{Constituency_Name}", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+    pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+    pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+    pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
     pdf.ln(4)
-    pdf.cell(0, 8, f"Date: {current_date_formatted}", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+    pdf.ln(4)
+   
+    pdf.set_line_width(2)
+
+    # Define the starting X and Y coordinates for the line
+    x1 = 10  # 20px from the left margin
+    x2 = pdf.w - 10  # 20px from the right margin
+    y = pdf.get_y()  # Maintain the current Y position
+
+    # Draw a horizontal line by drawing a line
+    pdf.line(x1, y, x2, y)
+    pdf.set_line_width(0.5)
+    pdf.ln(4)
+
+    pdf.cell(0, 4, f"REF:..................................................................................................", align="L")
+    pdf.cell(0, 4, f"{current_date_formatted}", ln=True, align="R")
+
 
     pdf.ln(6)
-    pdf.cell(0, 8, f"Office of Student Finance,", ln=True, align="L")
-    pdf.cell(0, 8, f"{institution},", ln=True, align="L")
-    pdf.cell(0, 8, f"P. O. Box: {personal_details.institution_postal_address},", ln=True, align="L")
+    pdf.cell(0, 5.5, f"The Finance Department,", ln=True, align="L")
+    pdf.cell(0, 5.5, f"{institution},", ln=True, align="L")
+    pdf.cell(0, 5.5, f"P. O. Box: {personal_details.institution_postal_address},", ln=True, align="L")
 
     
     pdf.ln(5)
-    pdf.set_font("Times", size=12)
-
-    pdf.cell(0,6, "Dear Sir/Madam,", ln=True, align="L")
-
     pdf.set_font("Times", 'B', size=12)
 
-    pdf.multi_cell(0, 8, f"RE: Notification of Bursary Award for the following students.")
+    pdf.cell(0,6, "Dear Sir/Madam,", ln=True, align="L")
+    pdf.ln(3)
+
+
+    pdf.multi_cell(0, 6, f"RE: Bursary Allocation For FY {current_application.id_for_reference}.")
+    pdf.set_line_width(.5)
+
+    # Define the starting X and Y coordinates for the line
+    x1 = 11  # 20px from the left margin
+    x2 = pdf.w - 120 # 20px from the right margin
+    y = pdf.get_y()  # Maintain the current Y position
+
+    # Draw a horizontal line by drawing a line
+    pdf.line(x1, y, x2, y)
+    pdf.set_line_width(0.5)
+
     pdf.ln(3)
     pdf.set_font("Times", size=12)
-    pdf.multi_cell(0,8,f'Enclosed herewith find cheque no: 34343 amounting to Kshs {total_awarded_in_words} ({total_awarded_value}/=) only dated {current_date_formatted} in the benefit of the students listed below:-')
+    # total_awarded_value = "{:,}".format(total_awarded_value)
+    # pdf.multi_cell(0,6,f'Enclosed herewith, please find Cheque no:........................... amounting to Kshs. {total_awarded_in_words} ({total_awarded_value}/=) only dated {current_date_formatted} in the benefit of the students listed below:-')
+    pdf.multi_cell(0,6,'Enclosed herewith, please find Cheque no:........................... amounting to Kshs. {a} ({t:,}/=) only dated {c} in the benefit of the students listed below:-'.format(a=total_awarded_in_words, c=current_date_formatted,t=total_awarded_value))
+    pdf.ln(3)
 
     # Create a table header
     pdf.set_fill_color(0, 191, 255)  # Light Blue
     pdf.set_font("Arial", style='B', size=12)
     pdf.cell(0,6, f"{institution}", ln=True, align="C")
+    pdf.set_font("Arial", style='B', size=8)
 
-    pdf.cell(13, 10, "S/No.", 1, 0, 'C', 1)
-    pdf.cell(70, 10, "Name", 1, 0, 'C', 1)
-    pdf.cell(50, 10, "Admission Number", 1, 0, 'C', 1)
-    pdf.cell(40, 10, "Amount Awarded", 1, 1, 'C', 1)
+
+    pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Course", 1, 0, 'L', 1)
+    pdf.cell(35, 10, "Admission Number", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
 
     # Create a table with student details
     pdf.set_fill_color(255, 255, 255)  # White
-    pdf.set_font("Arial", size=12)
+    pdf.set_font("Arial", size=8)
     s_no = 1
     for student, awarded_data in zip(approved_users_personal_details, uploaded_users_data):
-        pdf.cell(13, 10, str(s_no), 1)
-        pdf.cell(70, 10, student.fullname, 1)
-        pdf.cell(50, 10, student.admin_no, 1)
-        pdf.cell(40, 10, str(awarded_data.awarded), 1, ln=True)
+        pdf.cell(9, 10, str(s_no), 1)
+        pdf.cell(60, 10, student.fullname, 1)
+        pdf.cell(60, 10, student.course, 1)
+        pdf.cell(35, 10, student.admin_no, 1)
+        pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+        UploadedDocuments.objects.filter(user=student.user,application=current_application).update(application_status = 'Disbursed')
         s_no += 1
         
-    pdf.set_font("Arial", style='B', size=12)
+    pdf.set_font("Arial", style='B', size=10)
     
-    pdf.cell(13, 10, "", 1, 0, 'C', 1)
-    pdf.cell(70, 10, "TOTAL", 1, 0, 'L', 1)
-    pdf.cell(50, 10, "", 1, 0, 'C', 1)
-    pdf.cell(40, 10, str(total_awarded_value), 1, 1, 'L', 1)
+    pdf.cell(9, 10, "", 1, 0, 'C', 1)
+    pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "", 1, 0, 'L', 1)
+    pdf.cell(35, 10, "", 1, 0, 'C', 1)
+    pdf.cell(20, 10, "{:,}".format(total_awarded_value), 1, 1, 'L', 1)
     pdf.set_font("Arial", size=12)
 
     pdf.ln(10)
     pdf.multi_cell(0,8,'Please acknowledge formally receipt of the above cheque and in case of any changes the CDF office has all the discretion to award any needy students.')
-    pdf.cell(0,8, "Thank you for your co-operation.")
+    pdf.cell(0,6, "Thank you for your co-operation.")
     pdf.ln(20)
-    pdf.cell(0,8,"Yours's Faithfully,")
+    pdf.cell(0,6,"Yours's Faithfully,")
+    pdf.ln(20)
+    pdf.cell(0,6,f"{owner.name_of_the_chairperson},", ln=True)
+   
+    pdf.cell(0,6,"CDF Chairperson.", ln=True)
+
+    pdf.cell(0,6,f"{owner.name}.", ln=True)
 
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{institution}.pdf"'
+    response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{institution}_FY_{current_application.id_for_reference}.pdf"'
     response.write(pdf.output(dest='S').encode('latin1'))
     return response
 
