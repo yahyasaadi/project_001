@@ -671,8 +671,9 @@ def staff_dashboard(request):
 def list_of_applicants(request):
     owner = OwnerDetails.objects.last
     application = Application.objects.last()
-    applied_user_ids = UploadedDocuments.objects.filter( application=application).values_list('user_id', flat=True)
-    applied_users_personal_details = PersonalDetails.objects.filter(user_id__in=applied_user_ids, fullname__isnull=False)
+    applied_user_ids = UploadedDocuments.objects.filter( application=application,verification_document__isnull=False).values_list('user_id', flat=True)
+
+    applied_users_personal_details = PersonalDetails.objects.filter(user_id__in=applied_user_ids)
 
 
     status_for_all_user = UploadedDocuments.objects.filter(user_id__in=applied_user_ids)
