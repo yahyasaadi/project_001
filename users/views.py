@@ -48,6 +48,7 @@ def home(request):
         return render(request, "users/home.html",{'owner':owner})
 
 def signup(request):
+    owner = OwnerDetails.objects.last()
     if request.method == "POST":
         username = request.POST['username']
         fname = request.POST['fname']
@@ -81,14 +82,14 @@ def signup(request):
         new_user.last_name = lname
         new_user.is_active = False
         new_user.save()
-        messages.success(request, "Your account has been successfully created.")
+        messages.success(request, "Account Created Successfully. Activation Link has been Sent to your Email. Please Confirm.")
 
 
        
         # welcome email
         email = EmailMessage(
-            subject="Welcome to Dadaab CDF Login!!",
-            body="Hello " + new_user.first_name + "!! \n" + "Welcome to Dadaab CDF. \nThank you for visiting our website.\nWe have also sent you a confirmation email, please confirm your email address. \n\nThanking You\nYahya Saadi",
+            subject=f"Welcome to {owner.county} Portal!!",
+            body="Hello " + new_user.first_name + "!! \n" + f"Welcome to {owner.county}. \nThank you for visiting our website.\nWe have also sent you a confirmation email, please confirm your email address. \n\nThanking You\n{owner.name_of_the_chairperson}, Chairperson.",
             from_email=settings.EMAIL_HOST_USER,
             to=[new_user.email],
         )
@@ -98,7 +99,7 @@ def signup(request):
 
         # Email Address Confirmation Email
         current_site = get_current_site(request)
-        email_subject = "Confirm your Email @ Dadaab Login!"
+        email_subject = f"Confirm your Email @ {owner.county}!"
         message2 = render_to_string('email_confirmation.html',{
             
             'name': new_user.first_name,
@@ -115,11 +116,13 @@ def signup(request):
         email.fail_silently = True
         email.send()
         return redirect('signin')
-    owner = OwnerDetails.objects.last()
-    context = {
-        'owner':owner
-    }
-    return render(request, "users/signup.html",context)
+    
+    if not request.user.is_authenticated:
+        context = {
+            'owner':owner
+        }
+        return render(request, "users/signup.html",context)
+    return redirect('signin')
 
 
 
@@ -138,7 +141,10 @@ def activate(request,uidb64,token):
         messages.success(request, "Your Account has been activated!!")
         return redirect('students_dashboard')
     else:
-        return render(request,'activation_failed.html')
+        context = {
+            'owner':OwnerDetails.objects.last()
+        }
+        return render(request,'activation_failed.html',context)
     
 
 @login_required
@@ -485,23 +491,33 @@ def signin(request):
 
         if user is not None:
             login(request, user)
-            fname = user.first_name
 
             if user.is_staff:
+                messages.success(request, f"{username} - Logged In Successfully!!")
                 return redirect('staff_dashboard')
-            # messages.success(request, "Logged In Sucessfully!!")
+            
+            messages.success(request, f"{username} - Logged In Successfully!!")
             return redirect('students_dashboard')
         else:
-            messages.error(request, "Invalid username or password.")
-            return redirect('signin')
+
+            if User.objects.filter(username=username,is_active = False):
+                messages.error(request, "Please Activate your account first.")
+                return redirect('signin')
+
+            else:   
+                messages.error(request, "Invalid username or password.")
+                return redirect('signin')
     else:
         if request.user.is_authenticated:
             if request.user.is_staff:
                 return redirect('staff_dashboard')
             else:
                 return redirect('students_dashboard')
-        owner = OwnerDetails.objects.first()  
-        return render(request, "users/signin.html",{'owner':owner})
+        else:
+            owner = OwnerDetails.objects.first()  
+            return render(request, "users/signin.html",{'owner':owner})
+
+
 
 @login_required
 def signout(request):
@@ -1000,7 +1016,12 @@ def generate_pdf(request):
         messages.error(request, 'Provide all the required information, including personal details, Family Info, Additional info, and Academic Performance. Ensure the information is accurate and verifiable.')
         return redirect('students_dashboard')
     
-   
+    try:
+        name_of_application = Application.objects.last().name_of_application
+    except AttributeError:
+        return redirect('apply')
+
+
         
     response = HttpResponse(content_type='application/pdf')
     
@@ -1015,7 +1036,7 @@ def generate_pdf(request):
     class PDF(FPDF):
         def header(self):
             self.set_font('Times', 'B', 8)
-            self.cell(0, 0, f'{owner.name} {application_details.name_of_application} Application Form.', 0, 1, 'R')
+            self.cell(0, 0, f'{owner.name} {name_of_application} Application Form.', 0, 1, 'R')
             self.cell(0, 0, f'Date: {current_date1}', 0, 1, 'L')
         
         def footer(self):
@@ -1385,11 +1406,10 @@ def apply(request):
         user = request.user
         
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        id_card = request.FILES.get('id_card')
         transcript_report_form = request.FILES.get('transcript_report_form')
         parents_guardians_id_card = request.FILES.get('parents_guardians_id_card')
         students_id_card = request.FILES.get('students_id_card')
-        birth_certificate = request.FILES.get('birth_certificate')
+        id_card_birth_certificate = request.FILES.get('id_card_birth_certificate')
         parents_death_certificate = request.FILES.get('parents_death_certificate')
         fees_structure = request.FILES.get('fees_structure')
         admission_letters = request.FILES.get('admission_letters')
@@ -1397,11 +1417,11 @@ def apply(request):
         uploaded_documents = UploadedDocuments(
             user=user,
             application=Application.objects.last(),
-            id_card=id_card,
+            
             transcript_report_form=transcript_report_form,
             parents_guardians_id_card=parents_guardians_id_card,
             students_id_card=students_id_card,
-            birth_certificate=birth_certificate,
+            id_card_birth_certificate=id_card_birth_certificate,
             parents_death_certificate=parents_death_certificate,
             fees_structure=fees_structure,
             admission_letters=admission_letters,
@@ -1523,13 +1543,13 @@ def generate_bursary_letter(request, user_id):
     last_application = Application.objects.last()
     owner = OwnerDetails.objects.last()
     uploaded = UploadedDocuments.objects.filter(user=user1).first()
-    Email_Address = request.user.email
+
     recipient_name = personal_details.fullname
     institution_name = personal_details.institution
     amount_awarded = uploaded.awarded
     course_name = personal_details.course
     Constituency_Name = owner.name
-    fullname=request.user.first_name + ' '+ request.user.last_name
+
 
     current_date_formatted = date(datetime.now(), "F d, Y")
 
@@ -1728,7 +1748,7 @@ def update_current_application(request):
 def approved_lst_pdf(request):
     last_application = Application.objects.last()
     owner = OwnerDetails.objects.last()
-    approved_sum = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).aggregate(Sum('awarded'))['awarded__sum']
+    approved_sum = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).aggregate(Sum('awarded'))['awarded__sum'] or 0
 
     # all_approved = UploadedDocuments.objects.filter(application_status='Approved', application=last_application).values_list('user_id', flat=True)
     all_disbursed_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').values_list('user_id', flat=True)
@@ -1739,11 +1759,11 @@ def approved_lst_pdf(request):
     # approved_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_approved)
     disbursed_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_disbursed_higher)
     # Count the number of records with application_status set to 'Disbursed'
-    disbursed_count = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).count()
+    disbursed_count = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).count() or 0
 
-    disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for = 'Secondary').count()
-    disbursed_high = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for="Higher_Education").count()
-
+    disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for = 'Secondary').count() or 0
+    disbursed_high = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for="Higher_Education").count() or 0
+ 
     # Now, disbursed_count contains the count of 'Disbursed' records
 
 
@@ -1846,8 +1866,8 @@ def approved_lst_pdf(request):
 
 
 ##################distributed
-    dis_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum']
-    dis_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum']
+    dis_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum'] or 0
+    dis_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum'] or 0
 
     pdf.cell(115, 10, "Funds Disbursed to Secondary Schools", 1)
     pdf.cell(60, 10, "Kshs. {:,}".format(dis_sec), 1,ln=True)
@@ -2028,18 +2048,6 @@ def forwarding_letter(request):
 
 
 
-@staff_member_required
-def any_reports(request, id):
-    j = id[:4]
-    k = id[4:]
-    l = j + '/' + k
-    l = str(l)
-    print(l)
-
-    
-
-
-
 
 @staff_member_required
 def reports(request):
@@ -2048,10 +2056,9 @@ def reports(request):
         print(f"Printing Id :   {id}")
         last_application = Application.objects.get(id_for_reference=id)
        
-        
-
         owner = OwnerDetails.objects.last()
-        approved_sum = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).aggregate(Sum('awarded'))['awarded__sum']
+
+        approved_sum = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).aggregate(Sum('awarded'))['awarded__sum'] or 0
 
         # all_approved = UploadedDocuments.objects.filter(application_status='Approved', application=last_application).values_list('user_id', flat=True)
         all_disbursed_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').values_list('user_id', flat=True)
@@ -2062,10 +2069,10 @@ def reports(request):
         # approved_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_approved)
         disbursed_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_disbursed_higher)
         # Count the number of records with application_status set to 'Disbursed'
-        disbursed_count = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).count()
+        disbursed_count = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).count() or 0
 
-        disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for = 'Secondary').count()
-        disbursed_high = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for="Higher_Education").count()
+        disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for = 'Secondary').count() or 0
+        disbursed_high = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for="Higher_Education").count() or 0
 
         # Now, disbursed_count contains the count of 'Disbursed' records
 
@@ -2169,15 +2176,15 @@ def reports(request):
 
 
     ##################distributed
-        dis_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum']
-        dis_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum']
+        dis_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum'] or 0
+        dis_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum'] or 0
 
         pdf.cell(115, 10, "Funds Disbursed to Secondary Schools", 1)
         pdf.cell(60, 10, "Kshs. {:,}".format(dis_sec), 1,ln=True)
 
 
         pdf.cell(115, 10, "Funds Disbursed for Higher Education", 1)
-        pdf.cell(60, 10, "Kshs. {:,}".format(dis_higher), 1,ln=True)
+        pdf.cell(60, 10, f"Kshs. {dis_higher:,}", 1,ln=True)
 
 
     ##################remaining

@@ -33,7 +33,7 @@ urlpatterns = [
     path('user/<int:user_id>/', views.user_profile, name='user_profile'),
     path('institution/<str:inst_name>/', views.institution_profile, name='institution_profile'),
     path('forwarding_letter_institution/<str:institution>/', views.forwarding_letter_institution, name='forwarding_letter_institution'),
-    path('report/<str:id>/', views.any_reports, name='any_reports'),
+
 
     path('students_dashboard/', views.studentsDashboard, name="students_dashboard"),
     path('list_of_applicants/', views.list_of_applicants, name="list_of_applicants"),
