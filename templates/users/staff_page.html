@@ -23,7 +23,13 @@
                <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
                     <div class="card orange">
                          <div class="title">Funds Allocated for Secondary School</div>
-                         <div id="sec_alloc" class="value">Kshs. {{funds_available_for_secondary_schools}}</div>
+                         <div id="sec_alloc" class="value">Kshs. 
+                              {%if funds_available_for_secondary_schools %}
+                                   {{funds_available_for_secondary_schools}}
+                              {% else %}
+                              0
+                              {% endif %}
+                         </div>
                          <p id="remaining_secondary_funds">Remaining Amount:</p>
 
 
@@ -32,7 +38,13 @@
                <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
                     <div class="card red">
                          <div class="title">Funds Allocated for Higher Institutions</div>
-                         <div id="high_alloc" class="value">Kshs. {{funds_available_for_universities}}</div>
+                         <div id="high_alloc" class="value">Kshs. 
+                              {%if funds_available_for_universities %}
+                                   {{funds_available_for_universities}}
+                              {% else %}
+                              0
+                              {% endif %}
+                         </div>
                          <p id="remaining_higher_education_funds">Remaining Amount:</p>
                     </div>
                </div>
@@ -50,19 +62,37 @@
                <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
                     <div class="card green">
                          <div class="title">Funds Awarded</div>
-                         <div class="value">{{approved_sum}}</div>
+                         <div class="value">Kshs.
+                              {% if approved_sum %}
+                                   {{approved_sum}}
+                              {% else %}
+                              0
+                              {% endif %}
+                         </div>
                     </div>
                </div>
                <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
                     <div class="card orange">
                          <div class="title">Funds Awarded To Secondary School</div>
-                         <div id="appr_sec" class="value">Kshs. {{approved_sum_secondary}}</div>
+                         <div id="appr_sec" class="value">Kshs. 
+                              {% if approved_sum_secondary %}
+                                   {{approved_sum_secondary}}
+                              {% else %}
+                              0
+                              {% endif %}
+                         </div>
                     </div>
                </div>
                <div class="col-12 col-md-6 col-lg-4 col-xl-3 mb-4">
                     <div class="card red">
                          <div class="title">Funds Available To Higher Institutions</div>
-                         <div id="appr_high" class="value">Kshs. {{approved_sum_higher_education}}</div>
+                         <div id="appr_high" class="value">Kshs. 
+                              {% if approved_sum_higher_education %}
+                                   {{approved_sum_higher_education}}
+                              {% else %}
+                              0
+                              {% endif %}
+                         </div>
                     </div>
                </div>
           </div>
@@ -84,6 +114,7 @@
                               <th>Funds For</th>
                               <th>View Profile</th>
                               <th>Awarding Letter</th>
+                              <th>Approved By</th>
                          </tr>
                     </thead>
                     <tr>
@@ -117,6 +148,9 @@
                               <td class="status">
                                    <a href="{% url 'generate_bursary_letter' disbursed_users_personal_details.user_id %}">Download</a>
                               </td>
+                              <td class="status">
+                                  <p>{{ status_for_all_disbursed.approved_by }}</p> 
+                              </td>
                          
                          </tr>
                          {% endfor %}
@@ -144,6 +178,7 @@
                               <th>Funds For</th>
                               <th>View Profile</th>
                               <th>Awarding Letter</th>
+                              <th>Approved By</th>
                          </tr>
                     </thead>
                     <tr>
@@ -177,6 +212,10 @@
                               <td class="status">
                                    <a href="{% url 'generate_bursary_letter' approved_applicant.user_id %}">Download</a>
                               </td>
+                              <td class="status">
+                                   <p>{{ funds_awarded.approved_by }}</p> 
+
+                              </td>
                          
                          </tr>
                          {% endfor %}
@@ -193,19 +232,27 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
 <script>
 // Get values from the elements
-const appr_sec = document.getElementById('appr_sec').innerText;
-const appr_high = document.getElementById('appr_high').innerText;
-const high_alloc = document.getElementById('high_alloc').innerText;
-const sec_alloc = document.getElementById('sec_alloc').innerText;
+var appr_sec = document.getElementById('appr_sec').innerText;
+var appr_high = document.getElementById('appr_high').innerText;
+var high_alloc = document.getElementById('high_alloc').innerText;
+var sec_alloc = document.getElementById('sec_alloc').innerText;
 
-const appr_high1 = parseInt(appr_high.replace(/[^0-9]/g, ''), 10);
-const appr_sec1 = parseInt(appr_sec.replace(/[^0-9]/g, ''), 10);
-const high_alloc1 = parseInt(high_alloc.replace(/[^0-9]/g, ''), 10);
-const sec_alloc1 = parseInt(sec_alloc.replace(/[^0-9]/g, ''), 10);
+var appr_high1 = parseInt(appr_high.replace(/[^0-9]/g, ''), 10);
+var appr_sec1 = parseInt(appr_sec.replace(/[^0-9]/g, ''), 10);
+var high_alloc1 = parseInt(high_alloc.replace(/[^0-9]/g, ''), 10);
+var sec_alloc1 = parseInt(sec_alloc.replace(/[^0-9]/g, ''), 10);
 
 // Calculate remaining funds
-const remaining_higher_education_funds = high_alloc1 - appr_high1;
-const remaining_secondary_funds = sec_alloc1 - appr_sec1;
+var remaining_higher_education_funds = high_alloc1 - appr_high1;
+var remaining_secondary_funds = sec_alloc1 - appr_sec1;
+
+if (isNaN(remaining_secondary_funds)) {
+     remaining_secondary_funds = sec_alloc1;
+ }
+
+ if (isNaN(remaining_higher_education_funds)) {
+     remaining_higher_education_funds = high_alloc1;
+ }
 
 // Update remaining funds in the corresponding elements
 document.getElementById('remaining_higher_education_funds').innerText = 'Remaining Amount: Kshs. '+ remaining_higher_education_funds;

@@ -57,11 +57,7 @@
                        Applications
                      </a>
                               </li>
-                              <!-- <li class="nav-item">
-                                   <a class="nav-link" href="#">
-                       <i class="zmdi zmdi-shopping-cart"></i>
-                       Products
-                     </a> -->
+                            
                               </li>
                               <li class="nav-item">
                                    <a class="nav-link" href="{% url 'orphans_or_disability' %}">
@@ -75,15 +71,15 @@
            </a>
                               </li>
                               <li class="nav-item">
-                                   <a class="nav-link" href="#">
+                                   <a class="nav-link" href="{% url 'new_application' %}">
                        <i class="zmdi zmdi-chart"></i>
-                       Reports
+                       Create New Application
                      </a>
                               </li>
                               <li class="nav-item">
-                                   <a class="nav-link" href="#">
+                                   <a class="nav-link" href="{% url 'forwarding_letter' %}">
                        <i class="zmdi zmdi-layers"></i>
-                       Integrations
+                       Awarding Per Institution
                      </a>
                               </li>
                          </ul>
@@ -96,29 +92,18 @@
                          </h6>
                          <ul class="nav flex-column mb-2">
                               <li class="nav-item">
-                                   <a class="nav-link" href="#">
+                                   <a class="nav-link" href="{% url 'create_institution' %}">
                        <i class="zmdi zmdi-file-text"></i>
-                       Current month
+                       All Secondary Schools
                      </a>
                               </li>
                               <li class="nav-item">
-                                   <a class="nav-link" href="#">
+                                   <a class="nav-link" href="{% url 'reports' %}">
                        <i class="zmdi zmdi-file-text"></i>
-                       Last quarter
+                       Reports
                      </a>
                               </li>
-                              <li class="nav-item">
-                                   <a class="nav-link" href="#">
-                       <i class="zmdi zmdi-file-text"></i>
-                       Social engagement
-                     </a>
-                              </li>
-                              <li class="nav-item">
-                                   <a class="nav-link" href="#">
-                       <i class="zmdi zmdi-file-text"></i>
-                       Year-end sale
-                     </a>
-                              </li>
+                             
                          </ul>
                     </div>
                </nav>

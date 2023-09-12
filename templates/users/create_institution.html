@@ -1,0 +1,77 @@
+{% extends 'users/staff_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="text-light">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form">
+              <h2>Create Institution</h2>
+              <form method="post" action="{% url 'create_institution' %}">
+                  {% csrf_token %}
+                  <div class="form-group">
+                      <label for="exampleInputEmail1">Institution Reference</label>
+                      <input type="text" name="institution_Reference" class="form-control" required placeholder="Institution Reference">
+                    </div>
+                  <div class="form-group">
+                    <label for="exampleInputEmail1">Institution Name</label>
+                    <input type="text" name="institution_name" class="form-control" required placeholder="Institution Name">
+                  </div>
+                  
+                  <button type="submit" class="btn btn-primary">Created</button>
+                </form>
+            </div>
+            <div class="approved_inst mt-5 py-3">
+
+              <h4>Awarded Secondary Schools - {{application.name_of_application}}</h4>
+              <table class="projects-table">
+                    <thead>
+                         <tr>
+                              <th>Institution Name</th>
+                              <th>Amount</th>
+                              <th>Approved By</th>
+                         </tr>
+                        </thead>
+                        <tbody>
+              {% for awards in awarded %}
+              <tr>
+                <td>
+                {{awards.user.first_name}}
+                </td>
+                <td>
+                  {{awards.awarded}}
+                </td>
+                <td>
+                  {{awards.approved_by}}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            </table>
+            </div>
+
+            
+        </div>
+        <div class="col-md-6 px-5">
+            <h2>List of Institutions <br><br></h2>
+            <ul>
+                
+            </ul>
+            {% for institution in institutions %}
+            <li>
+            <a href="{% url 'institution_profile' institution.username %}">{{ institution.first_name }}</a>
+                    
+            </li>
+            {% endfor %}
+        </div>
+        
+
+    </div>
+
+
+    
+</div>
+
+
+
+{%endblock%}

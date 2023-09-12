@@ -43,6 +43,13 @@ class OwnerDetails(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
     county = models.CharField(max_length=100)
+    p_o_box = models.CharField(max_length=255, null=True)
+    p_o_box_location = models.CharField(max_length=255, null=True)
+    location = models.CharField(max_length=255, null=True)
+    phone_number = models.CharField(max_length=255, null=True)
+    generation_email = models.CharField(max_length=255, null=True)
+    manager_email = models.CharField(max_length=255, null=True)
+    name_of_the_chairperson = models.CharField(max_length=255, null=True)
 
 
     def __str__(self):
@@ -51,6 +58,7 @@ class OwnerDetails(models.Model):
 class PersonalDetails(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     fullname = models.CharField(max_length=255)
+    education_level = models.CharField(max_length=20,null=True ,choices=[('Secondary', 'Secondary'), ('Higher_Education', 'Higher Education')])
     id_or_passport_no = models.CharField(max_length=255, null=True)
     gender = models.CharField(max_length=10, choices=[('male', 'Male'), ('female', 'Female')])
     date_of_birth = models.DateField()
@@ -207,19 +215,20 @@ FUNDS_FOR = [
 class UploadedDocuments(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     application = models.ForeignKey(Application, on_delete=models.CASCADE)
-    transcript_report_form = models.FileField(upload_to='documents/transcripts/')
+    transcript_report_form = models.FileField(upload_to='documents/transcripts/',null=True)
     parents_guardians_id_card = models.FileField(upload_to='documents/id_cards/', blank=True, null=True)
     students_id_card = models.FileField(upload_to='documents/students_id_cards/', blank=True, null=True)
-    birth_certificate = models.FileField(upload_to='documents/birth_certificates/', blank=True, null=True)
-    id_card = models.FileField(upload_to='documents/school_id_cards/', blank=True, null=True)
+    id_card_birth_certificate = models.FileField(upload_to='documents/school_id_cards/', blank=True, null=True)
     parents_death_certificate = models.FileField(upload_to='documents/death_certificates/', blank=True, null=True)
-    fees_structure = models.FileField(upload_to='documents/fees_structures/')
+    fees_structure = models.FileField(upload_to='documents/fees_structures/',null=True)
     admission_letters = models.FileField(upload_to='documents/admission_letters/', blank=True, null=True)
     verification_document = models.FileField(upload_to='documents/verification/', blank=True, null=True)
     application_status = models.CharField(max_length=50, default='Submitted', null=True,choices=application_status)
     funds_for = models.CharField(max_length=50, default='Undefined', null=True,choices=FUNDS_FOR)
     awarded = models.IntegerField(null=True, default=0)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    approved_by = models.CharField(null= True,max_length=250)
 
     def __str__(self):
         return self.user.first_name  + ' ' + self.user.last_name + ' - '+self.application_status

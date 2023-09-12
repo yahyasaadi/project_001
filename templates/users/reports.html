@@ -1,0 +1,25 @@
+{% extends 'users/staff_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container text-light mt-5">
+    <h4> Recent Application - {{last_application.name_of_application}} - <a href="{% url 'approved_lst_pdf' %}">Download</a></h4>
+    
+    <form action="{% url 'reports' %}" method="post">
+        {% csrf_token %}
+        <div class="form-group mt-4">
+            <h3>All Reports</h3>
+            <select class="form-control" name="id">
+                {% for application in all_applications %}
+                <option value="{{ application.id_for_reference }}">{{application}}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="mt-5 btn btn-primary">Download</button>
+        </div>
+    </form>
+   
+    
+</div>
+
+
+{%endblock%}

@@ -16,7 +16,7 @@
 </head>
 <body>
     {% for message in messages %}
-    <div id='messages_to_be_deleted' class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+    <div id='messages_to_be_deleted' class="alert alert-{{ message.tags }} alert-dismissible fade show mt-1" role="alert">
         <strong>Message:</strong> {{ message }}
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
         <span aria-hidden="true">&times;</span>

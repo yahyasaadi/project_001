@@ -14,6 +14,8 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.template.defaultfilters import date
 # from django.conf import settings
 from CDF import settings
+from itertools import groupby
+
 # from django.http import HttpResponse
 from .tokens import generate_token
 from .models import (
@@ -28,7 +30,7 @@ from .models import (
     )
 from fpdf import FPDF
 from datetime import datetime
-
+from num2words import num2words
 
 # Create your views here.
 @login_required
@@ -46,6 +48,7 @@ def home(request):
         return render(request, "users/home.html",{'owner':owner})
 
 def signup(request):
+    owner = OwnerDetails.objects.last()
     if request.method == "POST":
         username = request.POST['username']
         fname = request.POST['fname']
@@ -79,20 +82,14 @@ def signup(request):
         new_user.last_name = lname
         new_user.is_active = False
         new_user.save()
-        messages.success(request, "Your account has been successfully created.")
+        messages.success(request, "Account Created Successfully. Activation Link has been Sent to your Email. Please Confirm.")
 
 
-        # subject = "Welcome to Dadaab CDF Login!!"
-        # message = "Hello " + new_user.first_name + "!! \n" + "Welcome to GFG!! \nThank you for visiting our website\n. We have also sent you a confirmation email, please confirm your email address. \n\nThanking You\nYahya Saadi"        
-        # from_email = settings.EMAIL_HOST_USER
-        # to_list = [new_user.email]
-        # send_mail(subject, message, from_email, to_list, fail_silently=True)
-        # send_mail("Welcome to Dadaab CDF Login!!", "The message", "yahyasaadi9219@gmail.com", ["yahyasnoor@gmail.com"], fail_silently=True)
-
+       
         # welcome email
         email = EmailMessage(
-            subject="Welcome to Dadaab CDF Login!!",
-            body="Hello " + new_user.first_name + "!! \n" + "Welcome to Dadaab CDF. \nThank you for visiting our website.\nWe have also sent you a confirmation email, please confirm your email address. \n\nThanking You\nYahya Saadi",
+            subject=f"Welcome to {owner.county} Portal!!",
+            body="Hello " + new_user.first_name + "!! \n" + f"Welcome to {owner.county}. \nThank you for visiting our website.\nWe have also sent you a confirmation email, please confirm your email address. \n\nThanking You\n{owner.name_of_the_chairperson}, Chairperson.",
             from_email=settings.EMAIL_HOST_USER,
             to=[new_user.email],
         )
@@ -102,7 +99,7 @@ def signup(request):
 
         # Email Address Confirmation Email
         current_site = get_current_site(request)
-        email_subject = "Confirm your Email @ Dadaab Login!"
+        email_subject = f"Confirm your Email @ {owner.county}!"
         message2 = render_to_string('email_confirmation.html',{
             
             'name': new_user.first_name,
@@ -119,11 +116,13 @@ def signup(request):
         email.fail_silently = True
         email.send()
         return redirect('signin')
-    owner = OwnerDetails.objects.last()
-    context = {
-        'owner':owner
-    }
-    return render(request, "users/signup.html",context)
+    
+    if not request.user.is_authenticated:
+        context = {
+            'owner':owner
+        }
+        return render(request, "users/signup.html",context)
+    return redirect('signin')
 
 
 
@@ -142,7 +141,10 @@ def activate(request,uidb64,token):
         messages.success(request, "Your Account has been activated!!")
         return redirect('students_dashboard')
     else:
-        return render(request,'activation_failed.html')
+        context = {
+            'owner':OwnerDetails.objects.last()
+        }
+        return render(request,'activation_failed.html',context)
     
 
 @login_required
@@ -335,6 +337,7 @@ def personal_details(request):
     if request.method == 'POST':
         user = request.user
         fullname = request.POST['fullname']
+        education_level = request.POST['education_level']
         id_or_passport_no = request.POST['id_or_passport_no']
         gender = request.POST['gender']
         date_of_birth = request.POST['date_of_birth']
@@ -364,10 +367,11 @@ def personal_details(request):
         saving_personal_details = PersonalDetails(
             user=user,
             fullname=fullname,
+            education_level=education_level,
             id_or_passport_no= id_or_passport_no,
             gender=gender,
             date_of_birth=date_of_birth,
-            institution=institution,
+            institution=institution.upper(),
             admin_no=admin_no,
             campus_or_branch=campus_or_branch,
             faculty=faculty,
@@ -404,6 +408,8 @@ def update_personal_details(request):
         user = request.user
         print(user)
         fullname = request.POST['fullname']
+        education_level = request.POST['education_level']
+        
         id_or_passport_no = request.POST['id_or_passport_no']
         gender = request.POST['gender']
         date_of_birth = request.POST['date_of_birth']
@@ -433,10 +439,11 @@ def update_personal_details(request):
         updating = PersonalDetails.objects.filter(user=user).update(
             user=user,
             fullname=fullname,
+            education_level=education_level,
             id_or_passport_no= id_or_passport_no,
             gender=gender,
             date_of_birth=date_of_birth,
-            institution=institution,
+            institution=institution.upper(),
             admin_no=admin_no,
             campus_or_branch=campus_or_branch,
             faculty=faculty,
@@ -484,25 +491,35 @@ def signin(request):
 
         if user is not None:
             login(request, user)
-            fname = user.first_name
 
             if user.is_staff:
+                messages.success(request, f"{username} - Logged In Successfully!!")
                 return redirect('staff_dashboard')
-            # messages.success(request, "Logged In Sucessfully!!")
+            
+            messages.success(request, f"{username} - Logged In Successfully!!")
             return redirect('students_dashboard')
         else:
-            messages.error(request, "Invalid username or password.")
-            return redirect('signin')
+
+            if User.objects.filter(username=username,is_active = False):
+                messages.error(request, "Please Activate your account first.")
+                return redirect('signin')
+
+            else:   
+                messages.error(request, "Invalid username or password.")
+                return redirect('signin')
     else:
         if request.user.is_authenticated:
             if request.user.is_staff:
                 return redirect('staff_dashboard')
             else:
                 return redirect('students_dashboard')
-        owner = OwnerDetails.objects.first()  
-        return render(request, "users/signin.html",{'owner':owner})
+        else:
+            owner = OwnerDetails.objects.first()  
+            return render(request, "users/signin.html",{'owner':owner})
 
 
+
+@login_required
 def signout(request):
     logout(request)
     messages.success(request, "Logged Out Successfully!!")
@@ -785,6 +802,8 @@ def user_profile(request, user_id):
         awarded = request.POST['awarded']
         
         
+        
+        
 
         uploaded_docs = UploadedDocuments.objects.filter(user=user1).first()
         if awarded == '':
@@ -794,6 +813,7 @@ def user_profile(request, user_id):
             uploaded_docs.application_status = application_status
             uploaded_docs.funds_for = funds_for
             uploaded_docs.awarded = awarded
+            uploaded_docs.approved_by = request.user.first_name + ' '+request.user.last_name
             uploaded_docs.save()
 
             messages.info(request, f"Applicant: {user1.first_name} {user1.last_name}'s Status has been updated to {application_status}")
@@ -977,36 +997,9 @@ def update_academic_performance(request):
         return render(request, 'users/update_academic_performance.html',{"owner":owner,'academic_performance':academic_performance})
 
 
-# @login_required
-# def review(request):
-#     owner = OwnerDetails.objects.first()
-#     personal_details = PersonalDetails.objects.get(user = request.user)
-#     family_background = FamilyBackaground.objects.get(user = request.user)
-#     siblings = Sibling.objects.filter(user = request.user)
-#     additional_info = AdditionalInformation.objects.get(user = request.user)
-#     academic_performance = AcademicPerformance.objects.get(user = request.user)
-#     context = {
-#         'owner':owner,
-#         'personal_details':personal_details,
-#         'family_background':family_background,
-#         'siblings':siblings,
-#         'additional_info':additional_info,
-#         'academic_performance':academic_performance
-#         }
-#     return render(request, 'users/review.html',context)
-
-
-
 @login_required
 def generate_pdf(request):
-    # owner = OwnerDetails.objects.first()
-    # personal_details = PersonalDetails.objects.get(user = request.user)
-    # family_background = FamilyBackaground.objects.get(user = request.user)
-    # siblings = Sibling.objects.filter(user = request.user)
-    # additional_info = AdditionalInformation.objects.get(user = request.user)
-    # academic_performance = AcademicPerformance.objects.get(user = request.user)
-    # application_details = Application.objects.last()
-
+    
     try:
         owner = OwnerDetails.objects.get()
         personal_details = PersonalDetails.objects.get(user=request.user)
@@ -1014,7 +1007,7 @@ def generate_pdf(request):
         siblings = Sibling.objects.filter(user=request.user)
         additional_info = AdditionalInformation.objects.get(user=request.user)
         academic_performance = AcademicPerformance.objects.get(user=request.user)
-        application_details = Application.objects.get()  # Make sure you have the correct way to retrieve application details
+        application_details = Application.objects.last()  # Make sure you have the correct way to retrieve application details
         
     except (OwnerDetails.DoesNotExist, PersonalDetails.DoesNotExist, FamilyBackaground.DoesNotExist,
             Sibling.DoesNotExist, AdditionalInformation.DoesNotExist,
@@ -1022,6 +1015,13 @@ def generate_pdf(request):
         
         messages.error(request, 'Provide all the required information, including personal details, Family Info, Additional info, and Academic Performance. Ensure the information is accurate and verifiable.')
         return redirect('students_dashboard')
+    
+    try:
+        name_of_application = Application.objects.last().name_of_application
+    except AttributeError:
+        return redirect('apply')
+
+
         
     response = HttpResponse(content_type='application/pdf')
     
@@ -1036,7 +1036,7 @@ def generate_pdf(request):
     class PDF(FPDF):
         def header(self):
             self.set_font('Times', 'B', 8)
-            self.cell(0, 0, f'{owner.name} {application_details.name_of_application} Application Form.', 0, 1, 'R')
+            self.cell(0, 0, f'{owner.name} {name_of_application} Application Form.', 0, 1, 'R')
             self.cell(0, 0, f'Date: {current_date1}', 0, 1, 'L')
         
         def footer(self):
@@ -1059,9 +1059,9 @@ def generate_pdf(request):
     pdf.image(image_path, x=pdf.w / 2 - img_width / 2, y=pdf.get_y(), w=img_width)
     pdf.ln(20)
     pdf.set_font("Times", 'B', 22)
-    pdf.cell(0, 10, f"{owner.name} Bursary", ln=True, align='C')
+    pdf.cell(0, 10, f"{owner.county} Bursary", ln=True, align='C')
     pdf.set_font("Times", 'B', 8)
-    pdf.cell(0, 5, f"P.O. BOX 732-90200, {owner.name}. TEL: 0734-909- 303 & 0726242177. Email.cdfdadaab@ngcdf.go.ke", ln=True, align='C')
+    pdf.cell(0, 5, f"{owner.p_o_box}, {owner.location}. TEL: {owner.phone_number}. Email:{owner.generation_email}/{owner.manager_email}", ln=True, align='C')
     
     pdf.ln(4)
     pdf.set_font("Times", 'B', 16)
@@ -1400,16 +1400,16 @@ def generate_pdf(request):
     response.write(pdf.output(dest='S').encode('latin1'))
     return response
 
-
+@login_required
 def apply(request):
     if request.method=='POST':
         user = request.user
+        
         current_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-        id_card = request.FILES.get('id_card')
         transcript_report_form = request.FILES.get('transcript_report_form')
         parents_guardians_id_card = request.FILES.get('parents_guardians_id_card')
         students_id_card = request.FILES.get('students_id_card')
-        birth_certificate = request.FILES.get('birth_certificate')
+        id_card_birth_certificate = request.FILES.get('id_card_birth_certificate')
         parents_death_certificate = request.FILES.get('parents_death_certificate')
         fees_structure = request.FILES.get('fees_structure')
         admission_letters = request.FILES.get('admission_letters')
@@ -1417,11 +1417,11 @@ def apply(request):
         uploaded_documents = UploadedDocuments(
             user=user,
             application=Application.objects.last(),
-            id_card=id_card,
+            
             transcript_report_form=transcript_report_form,
             parents_guardians_id_card=parents_guardians_id_card,
             students_id_card=students_id_card,
-            birth_certificate=birth_certificate,
+            id_card_birth_certificate=id_card_birth_certificate,
             parents_death_certificate=parents_death_certificate,
             fees_structure=fees_structure,
             admission_letters=admission_letters,
@@ -1445,7 +1445,7 @@ def apply(request):
 
         if saving:
             # owner = OwnerDetails.objects.first()
-            messages.success(request, "Your account has been successfully created.")
+            messages.success(request, "Documents uploaded Successfully.")
             return redirect('home')
         
         else:
@@ -1453,26 +1453,62 @@ def apply(request):
 
     else:
         owner = OwnerDetails.objects.first()
-        current_date = datetime.now().date()
+        current_date = datetime.now().date()       
+
         # Get the last added Application instance
         last_application = Application.objects.last()
         try:
             already = UploadedDocuments.objects.get(user=request.user,application=last_application)   
+
         except UploadedDocuments.DoesNotExist:
-            already = None  
+            already = None 
+
+        try:
+            level_of_Education = PersonalDetails.objects.get(user = request.user).education_level
+
+        except PersonalDetails.DoesNotExist:
+            level_of_Education = None
+
             
-        print(already)
+        
         if last_application:
             # Get the current date
             current_date = datetime.now().date()
 
             # Compare the end_date with the current date
-            if last_application.end_date > current_date and last_application.is_active :
+            application_statuses = ['Approved', 'Funded', 'Disbursed']
+            approved_sum_sec = UploadedDocuments.objects.filter(application_status__in=application_statuses, application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum']
+            approved_sum_uni = UploadedDocuments.objects.filter(application_status__in=application_statuses, application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum']
+            approved_sum_sec = approved_sum_sec = int(approved_sum_sec) if approved_sum_sec is not None else 0
+            approved_sum_uni = approved_sum_uni = int(approved_sum_uni) if approved_sum_uni is not None else 0
+            # all_funds = int(last_application.funds_available_for_secondary_schools + last_application.funds_available_for_universities)
+            print(f"Funds funds_available_for_secondary_schools ..... {last_application.funds_available_for_secondary_schools}")
+
+            if last_application.end_date > current_date and last_application.is_active:
                 # The end_date has passed
                 print("The end date has not passed.")
                 if already is None:
                     owner = OwnerDetails.objects.first()
-                    return render(request, 'users/uploading.html',{'owner':owner,'last_application':last_application})
+                    if level_of_Education == 'Secondary':
+                        if approved_sum_sec < last_application.funds_available_for_secondary_schools:
+                            return render(request, 'users/uploading.html',{'owner':owner,'last_application':last_application})
+                        else:
+                            context={
+                            'message':f"Applications for {level_of_Education} Schools Funds has been Suspended.",
+                            'owner':owner,
+                            }
+                            return render(request, 'users/404.html',context)
+                    else:
+                        if approved_sum_uni < last_application.funds_available_for_universities:
+                            return render(request, 'users/uploading.html',{'owner':owner,'last_application':last_application})
+                        else:
+                            context={
+                            'message':"Applications for Higher Education Fund has been Suspended.",
+                            'owner':owner,
+                            }
+                            return render(request, 'users/404.html',context)
+                           
+
                 else:
                     # return HttpResponse(f'You have already applied and your application status: {already.application_status}')
                     status = already.application_status
@@ -1486,8 +1522,8 @@ def apply(request):
                 context={
                 'message':"Deadline for Submission has passed or Application has been Suspended.",
                 'owner':owner,
-            }
-            return render(request, 'users/404.html',context)
+                }
+                return render(request, 'users/404.html',context)
                 # return HttpResponse(f'You passed the deadline which was {last_application.end_date}')
         else:
             # No Application instance exists
@@ -1507,14 +1543,15 @@ def generate_bursary_letter(request, user_id):
     last_application = Application.objects.last()
     owner = OwnerDetails.objects.last()
     uploaded = UploadedDocuments.objects.filter(user=user1).first()
-    Email_Address = request.user.email
+
     recipient_name = personal_details.fullname
     institution_name = personal_details.institution
     amount_awarded = uploaded.awarded
     course_name = personal_details.course
     Constituency_Name = owner.name
-    fullname=request.user.first_name + ' '+ request.user.last_name
-    current_date = datetime.now().strftime("%Y-%m-%d")
+
+
+    current_date_formatted = date(datetime.now(), "F d, Y")
 
     UploadedDocuments.objects.filter(user=user1,application=last_application).update(
         application_status = 'Disbursed'
@@ -1529,25 +1566,57 @@ def generate_bursary_letter(request, user_id):
 
     pdf.add_page()
 
-    pdf.set_font("Times", 'B', size=12)
+    pdf.set_font("Times", 'B', size=10)
+
+        # Specify the image path and original width
+    image_path = 'static/images/overall.jpg'
+    original_img_width = 50  # Adjust this to the original width of your image
+
+    # Calculate the new width for the image (e.g., half of the original width)
+    img_width = original_img_width / 2
+
+    # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+    pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
 
     # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
-    pdf.cell(0, 8, f"{fullname},", ln=True, align="R")
-    pdf.cell(0, 8, f"{Constituency_Name},", ln=True, align="R")
-    pdf.multi_cell(0, 8, f"P. O. Box: 123456 - 70100,\n Garissa.", align="R")
+    pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+    pdf.cell(0, 4, f"{Constituency_Name}", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+    pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+    pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+    pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
     pdf.ln(4)
-    pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+    pdf.ln(4)
+   
+    pdf.set_line_width(2)
+
+    # Define the starting X and Y coordinates for the line
+    x1 = 10  # 20px from the left margin
+    x2 = pdf.w - 10  # 20px from the right margin
+    y = pdf.get_y()  # Maintain the current Y position
+
+    # Draw a horizontal line by drawing a line
+    pdf.line(x1, y, x2, y)
+    pdf.set_line_width(0.5)
+    pdf.ln(4)
+
+    pdf.cell(0, 4, f"REF:..................................................................................................", align="L")
+    pdf.cell(0, 4, f"{current_date_formatted}", ln=True, align="R")
+
 
     pdf.ln(6)
-    pdf.cell(0, 8, f"Office of Student Finance,", ln=True, align="L")
-    pdf.cell(0, 8, f"{institution_name},", ln=True, align="L")
-    pdf.cell(0, 8, f"P. O. Box: {personal_details.institution_postal_address},", ln=True, align="L")
-    pdf.cell(0, 8, f"Campus/Branch: {personal_details.campus_or_branch}.", ln=True, align="L")
+    pdf.cell(0, 5.5, f"The Finance Department,", ln=True, align="L")
+    pdf.cell(0, 5.5, f"{personal_details.institution},", ln=True, align="L")
+    pdf.cell(0, 5.5, f"P. O. Box: {personal_details.institution_postal_address},", ln=True, align="L")
+
     
     pdf.ln(5)
-    pdf.set_font("Times", size=12)
+    pdf.set_font("Times", 'B', size=12)
 
     pdf.cell(0,6, "Dear Sir/Madam,", ln=True, align="L")
+    pdf.ln(3)
 
     pdf.set_font("Times", 'B', size=12)
 
@@ -1573,16 +1642,19 @@ def generate_bursary_letter(request, user_id):
         f"accept our warm congratulations on this remarkable achievement.\n\n"
         f"If you require any further information or documentation related to the bursary award, please do not "
         f"hesitate to contact our office.\n\n"
-        f"Thank you for your support and cooperation.\n\n"
-        f"Sincerely,\n\n"
-        f"{fullname}\n"
-        f"{Constituency_Name} Constituency Development Fund (CDF)\n"
-        f"{Email_Address}\n"
-
     )
 
     pdf.multi_cell(0, 5, letter_content)
+
+    pdf.cell(0,6, "Thank you for your co-operation.")
     pdf.ln(10)
+    pdf.cell(0,6,"Yours's Faithfully,")
+    pdf.ln(15)
+    pdf.cell(0,6,f"{owner.name_of_the_chairperson},", ln=True)
+   
+    pdf.cell(0,6,"CDF Chairperson.", ln=True)
+
+    pdf.cell(0,6,f"{owner.name}.", ln=True)
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{recipient_name}.pdf"'
@@ -1592,7 +1664,7 @@ def generate_bursary_letter(request, user_id):
 
 
 
-# new application creation
+@staff_member_required
 def new_application(request):
     if request.method=='POST':
         id_for_reference = request.POST['id_for_reference']
@@ -1601,7 +1673,15 @@ def new_application(request):
         funds_available_for_universities = request.POST['funds_available_for_universities']
         start_date = request.POST['start_date']
         end_date = request.POST['end_date']
-        # is_active = request.POST['is_active']
+        is_active = request.POST['activation']
+        if is_active == 'Yes':
+            is_active = True
+        else:
+            is_active = False
+
+        if Application.objects.filter(id_for_reference=id_for_reference):
+            messages.error(request, f"Application with ID {id_for_reference} already exists. Try again!")
+            return redirect('new_application')
 
         application = Application(
             id_for_reference = id_for_reference,
@@ -1610,105 +1690,906 @@ def new_application(request):
             funds_available_for_universities = funds_available_for_universities,
             start_date = start_date,
             end_date = end_date,
-            is_active = True
+            is_active = is_active
         )
 
         application.save()
+        messages.info(request, f'New Application Has Been Created under {name_of_application}')
         return redirect('staff_dashboard')
     else:
 
         owner = OwnerDetails.objects.last()
-        return render(request, 'users/new_application.html',{"owner":owner})
+        current_application = Application.objects.last()
+        context = {
+            'current_application' : current_application,
+            'owner':owner,
 
+        }
+        return render(request, 'users/new_application.html',context)
+
+
+@staff_member_required
+def update_current_application(request):
+    if request.method=='POST':
+        id_for_reference = request.POST['id_for_reference']
+        name_of_application = request.POST['name_of_application']
+        funds_available_for_secondary_schools = request.POST['funds_available_for_secondary_schools']
+        funds_available_for_universities = request.POST['funds_available_for_universities']
+        start_date = request.POST['start_date']
+        end_date = request.POST['end_date']
+        is_active = request.POST['activation']
+        
+
+        application =Application.objects.filter(id_for_reference= id_for_reference).update(
+            id_for_reference = id_for_reference,
+            name_of_application = name_of_application,
+            funds_available_for_secondary_schools = funds_available_for_secondary_schools,
+            funds_available_for_universities = funds_available_for_universities,
+            start_date = start_date,
+            end_date = end_date,
+            is_active = is_active
+        )
+        messages.info(request, 'Current Application Has Been Updated.')
+        return redirect('staff_dashboard')
+    else:
+
+        owner = OwnerDetails.objects.last()
+        current_application = Application.objects.last()
+        context = {
+            'current_application' : current_application,
+            'owner':owner,
+
+        }
+        return render(request, 'users/new_application.html',context)
+
+
+################################################ ANALYSIS ##########################
 @staff_member_required
 def approved_lst_pdf(request):
     last_application = Application.objects.last()
     owner = OwnerDetails.objects.last()
+    approved_sum = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).aggregate(Sum('awarded'))['awarded__sum'] or 0
 
-    all_approved = UploadedDocuments.objects.filter(application_status='Approved', application=last_application).values_list('user_id', flat=True)
-    all_disbursed = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).values_list('user_id', flat=True)
+    # all_approved = UploadedDocuments.objects.filter(application_status='Approved', application=last_application).values_list('user_id', flat=True)
+    all_disbursed_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').values_list('user_id', flat=True)
 
-    approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_approved)
-    disbursed_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_disbursed)
+    # approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_approved)
+    disbursed_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_disbursed_higher)
 
-    approved_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_approved)
-    disbursed_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_disbursed)
+    # approved_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_approved)
+    disbursed_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_disbursed_higher)
+    # Count the number of records with application_status set to 'Disbursed'
+    disbursed_count = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).count() or 0
 
+    disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for = 'Secondary').count() or 0
+    disbursed_high = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for="Higher_Education").count() or 0
+ 
+    # Now, disbursed_count contains the count of 'Disbursed' records
+
+
+   
     pdf = FPDF()
+
     pdf.add_page()
-    # pdf.set_font("Times", 'B', size=12)
+
+    pdf.set_font("Times", 'B', size=10)
+
+        # Specify the image path and original width
     image_path = 'static/images/overall.jpg'
     original_img_width = 50  # Adjust this to the original width of your image
-    img_width = original_img_width / 2  # Half of the original width
-    pdf.image(image_path, x=pdf.w / 2 - img_width / 2, y=pdf.get_y(), w=img_width)
-    pdf.ln(20)
-    pdf.set_font("Times", 'B', 22)
-    pdf.cell(0, 10, f"{owner.name} Bursary", ln=True, align='C')
-    pdf.set_font("Times", 'B', 8)
-    pdf.cell(0, 5, f"P.O. BOX 732-90200, {owner.name}. TEL: 0734-909- 303 & 0726242177. Email.cdfdadaab@ngcdf.go.ke", ln=True, align='C')
-    pdf.ln(8)
-    pdf.set_font("Times", 'B', 22)
-    pdf.cell(0, 6, f"List of Approved Recipient for {last_application.name_of_application}", ln=True, align='C')
-    pdf.ln(8)
+
+    # Calculate the new width for the image (e.g., half of the original width)
+    img_width = original_img_width / 2
+
+    # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+    pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
+
+    # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+    pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.name}", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+    pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+    pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+    pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
+    pdf.ln(4)
+    pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+    pdf.ln(4)
+   
+    pdf.set_line_width(2)
+
+    # Define the starting X and Y coordinates for the line
+    x1 = 10  # 20px from the left margin
+    x2 = pdf.w - 10  # 20px from the right margin
+    y = pdf.get_y()  # Maintain the current Y position
+
+    # Draw a horizontal line by drawing a line
+    pdf.line(x1, y, x2, y)
+    pdf.set_line_width(0.5)
+    pdf.ln(4)
+    pdf.set_font("Arial", style='B', size=16)
+
+    pdf.cell(0,6, f"Report of {last_application.name_of_application}", ln=True, align="C")
+    pdf.ln(4)
+
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 5, f"Education plays a pivotal role in the development of individuals and communities, serving as a catalyst for progress and empowerment. In line with this belief, the Constituency Development Fund (CDF) - {owner.name} for the year {last_application.id_for_reference} embarked on a mission to transform lives through the provision of bursaries to deserving students within our constituency. This report serves as a comprehensive account of our commitment to enhancing educational opportunities and fostering a brighter future for our youth.")
+    pdf.ln(4)
+    pdf.multi_cell(0,5, 'The year {fy} marked a significant milestone as the CDF allocated substantial resources, amounting to Kshs. {t:,} to support the education of students in our constituency. These bursaries aimed not only to alleviate the financial burdens of students and their families but also to empower them to pursue higher education or secondary education and achieve their dreams.'.format(fy=last_application.id_for_reference,t=last_application.funds_available_for_secondary_schools + last_application.funds_available_for_universities))
+    pdf.ln(4)
+    pdf.multi_cell(0,5,"This report stands as a testament to the power of education, the unwavering support of the CDF, and the resilience of our students. It is a reflection of our collective commitment to nurturing talent, fostering academic achievement, and building a brighter future for our constituency.")
+
+    pdf.ln(4)
+
+     # Create a table header
+    pdf.set_fill_color(0, 191, 255)  # Light Blue
+    pdf.set_font("Arial",  size=10)
+    pdf.cell(0,6, "Overview", ln=True, align="L")
+    pdf.ln(3)
+
+    pdf.cell(115, 10, "Item", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Details", 1, 1, 'L', 1)
     
-    col_width = pdf.w / 6.6
-    row_height = pdf.font_size + 6
 
-    # Header row
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(col_width, row_height, 'Full Name', border=1)
-    pdf.cell(col_width, row_height, 'Gender', border=1)
-    pdf.cell(col_width, row_height, 'Institution', border=1)
-    pdf.cell(col_width, row_height, 'Campus / Branch', border=1)
-    pdf.cell(col_width, row_height, 'Awarded Amount', border=1)
-    pdf.cell(col_width, row_height, 'Funds For', border=1)
-    pdf.ln(row_height)
+    pdf.cell(115, 10, "Financial Year", 1)
+    pdf.cell(60, 10, f"{last_application.id_for_reference}", 1,ln=True)
 
-    # Data rows
-    pdf.set_font('Arial', '', 10)
-    for row, item2 in zip(approved_users_personal_details,approved_users_awarded) :
-        pdf.cell(col_width, row_height, str(row.fullname), border=1)
-        pdf.cell(col_width, row_height, str(row.gender), border=1)
-        pdf.cell(col_width, row_height, str(row.institution), border=1)
-        pdf.cell(col_width, row_height, str(row.campus_or_branch), border=1)
-        pdf.cell(col_width, row_height, str(item2.awarded), border=1)
-        pdf.cell(col_width, row_height, str(item2.funds_for), border=1)
-        pdf.ln(row_height)
+    pdf.cell(115, 10, "Commencement Date", 1)
+    pdf.cell(60, 10, f"{last_application.start_date}", 1,ln=True)
 
-    pdf.ln(8)
-    pdf.set_font("Times", 'B', 22)
-    pdf.cell(0, 6, f"List of Applicants who Received Funds for {last_application.name_of_application}", ln=True, align='C')
-    pdf.ln(8)
+    pdf.cell(115, 10, "Conclusion Date", 1)
+    pdf.cell(60, 10, f"{last_application.end_date}", 1,ln=True)
+
+##################Applicants####
+    pdf.cell(115, 10, "Total Number of Applicants", 1)
+    pdf.cell(60, 10, f"{last_application.number_of_applicant}", 1,ln=True)
+
+    pdf.cell(115, 10, "Number of Applicants Approved", 1)
+    pdf.cell(60, 10, f"{disbursed_count}", 1,ln=True)
 
 
-    col_width = pdf.w / 6.6
-    row_height = pdf.font_size + 6
+#############Approved sec
+    pdf.cell(115, 10, "Number of Applicants Benefited in Secondary", 1)
+    pdf.cell(60, 10, f"{disbursed_sec}", 1,ln=True)
+#############Approved shigh
 
-    # Header row
-    pdf.set_font('Arial', 'B', 10)
-    pdf.cell(col_width, row_height, 'Full Name', border=1)
-    pdf.cell(col_width, row_height, 'Gender', border=1)
-    pdf.cell(col_width, row_height, 'Institution', border=1)
-    pdf.cell(col_width, row_height, 'Campus / Branch', border=1)
-    pdf.cell(col_width, row_height, 'Awarded Amount', border=1)
-    pdf.cell(col_width, row_height, 'Funds For', border=1)
-    pdf.ln(row_height)
+    pdf.cell(115, 10, "Number of Applicants Benefited in Higher Education", 1)
+    pdf.cell(60, 10, f"{disbursed_high}", 1,ln=True)
 
-    # Data rows
-    pdf.set_font('Arial', '', 10)
-    for row, item2 in zip(disbursed_users_personal_details,disbursed_users_awarded) :
-        pdf.cell(col_width, row_height, str(row.fullname), border=1)
-        pdf.cell(col_width, row_height, str(row.gender), border=1)
-        pdf.cell(col_width, row_height, str(row.institution), border=1)
-        pdf.cell(col_width, row_height, str(row.campus_or_branch), border=1)
-        pdf.cell(col_width, row_height, str(item2.awarded), border=1)
-        pdf.cell(col_width, row_height, str(item2.funds_for), border=1)
-        pdf.ln(row_height)
 
-    pdf.ln(8)
+    pdf.cell(115, 10, "Funds Allocated for Secondary Schools", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(last_application.funds_available_for_secondary_schools), 1,ln=True)
 
+
+    pdf.cell(115, 10, "Funds Allocated for Higher Education", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(last_application.funds_available_for_universities), 1,ln=True)
+
+
+##################distributed
+    dis_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum'] or 0
+    dis_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum'] or 0
+
+    pdf.cell(115, 10, "Funds Disbursed to Secondary Schools", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(dis_sec), 1,ln=True)
+
+
+    pdf.cell(115, 10, "Funds Disbursed for Higher Education", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(dis_higher), 1,ln=True)
+
+
+##################remaining
+    remain_sec = last_application.funds_available_for_secondary_schools - dis_sec
+    remain_higher = last_application.funds_available_for_universities - dis_higher
+    pdf.cell(115, 10, "Remaining Funds for Secondary Schools", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(remain_sec), 1,ln=True)
+
+
+    pdf.cell(115, 10, "Remaining Funds for Higher Education", 1)
+    pdf.cell(60, 10, "Kshs. {:,}".format(remain_higher), 1,ln=True)
+
+
+
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.ln(14)
+
+    pdf.cell(0,6, "[i] Higher Education", ln=True, align="L")
+    pdf.set_font("Arial", style='B', size=8)
+
+
+    pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+    pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+    pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+    # Create a table with student details
+    pdf.set_fill_color(255, 255, 255)  # White
+    pdf.set_font("Arial", size=8)
+    s_no = 1
+    total = 0
+    for student, awarded_data in zip(disbursed_users_personal_details, disbursed_users_awarded):
+        pdf.cell(9, 10, str(s_no), 1)
+        pdf.cell(60, 10, student.fullname, 1)
+        pdf.cell(15, 10, student.gender, 1)
+        pdf.cell(80, 10, student.institution, 1)
+        pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+        total +=awarded_data.awarded
+        s_no += 1
+        
+    pdf.set_font("Arial", style='B', size=10)
+    
+    pdf.cell(9, 10, "", 1, 0, 'C', 1)
+    pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(15, 10, "", 1, 0, 'L', 1)
+    pdf.cell(80, 10, "", 1, 0, 'C', 1)
+    pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+    pdf.set_font("Arial", size=12)
+
+
+    # #########################SEC ##########################
+     #######sec_data
+    all_disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').values_list('user_id', flat=True)
+    disbursed_users_personal_details_sec = PersonalDetails.objects.filter(user_id__in=all_disbursed_sec)
+    disbursed_users_awarded_sec = UploadedDocuments.objects.filter(user_id__in=all_disbursed_sec)
+   
+    pdf.ln(20)
+
+     # Create a table header
+    pdf.set_fill_color(0, 191, 255)  # Light Blue
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(0,6, f"[ii] Secondary Education", ln=True, align="L")
+    pdf.set_font("Arial", style='B', size=8)
+
+
+    pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+    pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+    pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+    # Create a table with student details
+    pdf.set_fill_color(255, 255, 255)  # White
+    pdf.set_font("Arial", size=8)
+    s_no = 1
+    total = 0
+    for student, awarded_data in zip(disbursed_users_personal_details_sec, disbursed_users_awarded_sec):
+        pdf.cell(9, 10, str(s_no), 1)
+        pdf.cell(60, 10, student.fullname, 1)
+        pdf.cell(15, 10, student.gender, 1)
+        pdf.cell(80, 10, student.institution, 1)
+        pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+        total +=awarded_data.awarded
+        s_no += 1
+        
+    pdf.set_font("Arial", style='B', size=10)
+    
+    pdf.cell(9, 10, "", 1, 0, 'C', 1)
+    pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(15, 10, "", 1, 0, 'L', 1)
+    pdf.cell(80, 10, "", 1, 0, 'C', 1)
+    pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+    pdf.set_font("Arial", size=12)
+
+    ####institution
+    ###inst data
+    try:
+        awarded_id_list = User.objects.filter(last_name='Institution').values_list('id', flat=True)
+        awarded = UploadedDocuments.objects.filter(application=last_application, user_id__in=awarded_id_list)
+        
+        # Check if there are no awarded records
+        
+    except UploadedDocuments.DoesNotExist:
+        awarded = 'No Schools/Institution Has been Awarded yet.'
+
+   
+    pdf.ln(20)
+    pdf.set_fill_color(0, 191, 255)  # Light Blue
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(0,6, f"[iii] Institutions", ln=True, align="L")
+    pdf.set_font("Arial", style='B', size=8)
+
+    pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+    pdf.cell(60+95, 10, "Institution Name", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+    s_no = 1
+    total = 0
+    for awards in awarded:
+        pdf.cell(9, 10, str(s_no), 1)
+        pdf.cell(60+95, 10, awards.user.first_name, 1)
+        pdf.cell(20, 10, "{:,}".format(awards.awarded), 1, ln=True)
+        total += awards.awarded
+        s_no += 1
+    
+    pdf.set_font("Arial", style='B', size=10)
+    
+    pdf.cell(9, 10, "", 1, 0, 'C', 1)
+    pdf.cell(60+95, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+ 
+    pdf.ln(20)
+    pdf.set_font("Arial", style='B', size=16)
+    pdf.cell(0,6, "Total Amount Disbursed = {:,}".format(approved_sum), ln=True, align="L")
 
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{last_application}.pdf"'
+    response["Content-Disposition"] = f'attachment; filename="Report-{owner.county}-{last_application}.pdf"'
     response.write(pdf.output(dest='S').encode('latin1'))
     return response
+
+
+
+@staff_member_required
+def forwarding_letter(request):
+    current_application = Application.objects.last()
+
+    # Get the user IDs of approved users in the current application
+    approved_user_ids = UploadedDocuments.objects.filter(application_status='Approved', application=current_application).values_list('user_id', flat=True)
+
+    # Get the PersonalDetails objects for approved users
+    approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids)
+
+    # Create a dictionary to store the grouped users by institution
+    grouped_users_by_institution = {}
+
+    # Group the approved users by their institution
+    sorted_users = sorted(approved_users_personal_details, key=lambda x: x.institution)
+    
+    for institution, users in groupby(sorted_users, key=lambda x: x.institution):
+        # Convert the 'users' iterator to a list to store all users for the institution
+        grouped_users_by_institution[institution] = list(users)
+
+    # Now, 'grouped_users_by_institution' contains a dictionary where keys are institutions, and values are lists of users for each institution.
+
+    context = {
+        'owner': OwnerDetails.objects.last(),
+        'grouped_users_by_institution': grouped_users_by_institution
+    }
+    return render(request, 'users/forwarding_letter.html', context)
+
+
+
+
+@staff_member_required
+def reports(request):
+    if request.method == 'POST':
+        id = request.POST['id']
+        print(f"Printing Id :   {id}")
+        last_application = Application.objects.get(id_for_reference=id)
+       
+        owner = OwnerDetails.objects.last()
+
+        approved_sum = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).aggregate(Sum('awarded'))['awarded__sum'] or 0
+
+        # all_approved = UploadedDocuments.objects.filter(application_status='Approved', application=last_application).values_list('user_id', flat=True)
+        all_disbursed_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').values_list('user_id', flat=True)
+
+        # approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_approved)
+        disbursed_users_personal_details = PersonalDetails.objects.filter(user_id__in=all_disbursed_higher)
+
+        # approved_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_approved)
+        disbursed_users_awarded = UploadedDocuments.objects.filter(user_id__in=all_disbursed_higher)
+        # Count the number of records with application_status set to 'Disbursed'
+        disbursed_count = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application).count() or 0
+
+        disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for = 'Secondary').count() or 0
+        disbursed_high = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for="Higher_Education").count() or 0
+
+        # Now, disbursed_count contains the count of 'Disbursed' records
+
+
+    
+        pdf = FPDF()
+
+        pdf.add_page()
+
+        pdf.set_font("Times", 'B', size=10)
+
+            # Specify the image path and original width
+        image_path = 'static/images/overall.jpg'
+        original_img_width = 50  # Adjust this to the original width of your image
+
+        # Calculate the new width for the image (e.g., half of the original width)
+        img_width = original_img_width / 2
+
+        # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+        pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
+
+        # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+        pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+        pdf.cell(0, 4, f"{owner.name}", ln=True, align="R")
+        pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+        pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+        pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+        pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
+        pdf.ln(4)
+        pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+        pdf.ln(4)
+    
+        pdf.set_line_width(2)
+
+        # Define the starting X and Y coordinates for the line
+        x1 = 10  # 20px from the left margin
+        x2 = pdf.w - 10  # 20px from the right margin
+        y = pdf.get_y()  # Maintain the current Y position
+
+        # Draw a horizontal line by drawing a line
+        pdf.line(x1, y, x2, y)
+        pdf.set_line_width(0.5)
+        pdf.ln(4)
+        pdf.set_font("Arial", style='B', size=16)
+
+        pdf.cell(0,6, f"Report of {last_application.name_of_application}", ln=True, align="C")
+        pdf.ln(4)
+
+        pdf.set_font("Arial", size=12)
+        pdf.multi_cell(0, 5, f"Education plays a pivotal role in the development of individuals and communities, serving as a catalyst for progress and empowerment. In line with this belief, the Constituency Development Fund (CDF) - {owner.name} for the year {last_application.id_for_reference} embarked on a mission to transform lives through the provision of bursaries to deserving students within our constituency. This report serves as a comprehensive account of our commitment to enhancing educational opportunities and fostering a brighter future for our youth.")
+        pdf.ln(4)
+        pdf.multi_cell(0,5, 'The year {fy} marked a significant milestone as the CDF allocated substantial resources, amounting to Kshs. {t:,} to support the education of students in our constituency. These bursaries aimed not only to alleviate the financial burdens of students and their families but also to empower them to pursue higher education or secondary education and achieve their dreams.'.format(fy=last_application.id_for_reference,t=last_application.funds_available_for_secondary_schools + last_application.funds_available_for_universities))
+        pdf.ln(4)
+        pdf.multi_cell(0,5,"This report stands as a testament to the power of education, the unwavering support of the CDF, and the resilience of our students. It is a reflection of our collective commitment to nurturing talent, fostering academic achievement, and building a brighter future for our constituency.")
+
+        pdf.ln(4)
+
+        # Create a table header
+        pdf.set_fill_color(0, 191, 255)  # Light Blue
+        pdf.set_font("Arial",  size=10)
+        pdf.cell(0,6, "Overview", ln=True, align="L")
+        pdf.ln(3)
+
+        pdf.cell(115, 10, "Item", 1, 0, 'L', 1)
+        pdf.cell(60, 10, "Details", 1, 1, 'L', 1)
+        
+
+        pdf.cell(115, 10, "Financial Year", 1)
+        pdf.cell(60, 10, f"{last_application.id_for_reference}", 1,ln=True)
+
+        pdf.cell(115, 10, "Commencement Date", 1)
+        pdf.cell(60, 10, f"{last_application.start_date}", 1,ln=True)
+
+        pdf.cell(115, 10, "Conclusion Date", 1)
+        pdf.cell(60, 10, f"{last_application.end_date}", 1,ln=True)
+
+    ##################Applicants####
+        pdf.cell(115, 10, "Total Number of Applicants", 1)
+        pdf.cell(60, 10, f"{last_application.number_of_applicant}", 1,ln=True)
+
+        pdf.cell(115, 10, "Number of Applicants Approved", 1)
+        pdf.cell(60, 10, f"{disbursed_count}", 1,ln=True)
+
+
+    #############Approved sec
+        pdf.cell(115, 10, "Number of Applicants Benefited in Secondary", 1)
+        pdf.cell(60, 10, f"{disbursed_sec}", 1,ln=True)
+    #############Approved shigh
+
+        pdf.cell(115, 10, "Number of Applicants Benefited in Higher Education", 1)
+        pdf.cell(60, 10, f"{disbursed_high}", 1,ln=True)
+
+
+        pdf.cell(115, 10, "Funds Allocated for Secondary Schools", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(last_application.funds_available_for_secondary_schools), 1,ln=True)
+
+
+        pdf.cell(115, 10, "Funds Allocated for Higher Education", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(last_application.funds_available_for_universities), 1,ln=True)
+
+
+    ##################distributed
+        dis_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum'] or 0
+        dis_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum'] or 0
+
+        pdf.cell(115, 10, "Funds Disbursed to Secondary Schools", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(dis_sec), 1,ln=True)
+
+
+        pdf.cell(115, 10, "Funds Disbursed for Higher Education", 1)
+        pdf.cell(60, 10, f"Kshs. {dis_higher:,}", 1,ln=True)
+
+
+    ##################remaining
+        remain_sec = last_application.funds_available_for_secondary_schools - dis_sec
+        remain_higher = last_application.funds_available_for_universities - dis_higher
+        pdf.cell(115, 10, "Remaining Funds for Secondary Schools", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(remain_sec), 1,ln=True)
+
+
+        pdf.cell(115, 10, "Remaining Funds for Higher Education", 1)
+        pdf.cell(60, 10, "Kshs. {:,}".format(remain_higher), 1,ln=True)
+
+
+
+        pdf.set_font("Arial", style='B', size=12)
+        pdf.ln(14)
+
+        pdf.cell(0,6, "[i] Higher Education", ln=True, align="L")
+        pdf.set_font("Arial", style='B', size=8)
+
+
+        pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+        pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+        pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+        pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
+        pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+        # Create a table with student details
+        pdf.set_fill_color(255, 255, 255)  # White
+        pdf.set_font("Arial", size=8)
+        s_no = 1
+        total = 0
+        for student, awarded_data in zip(disbursed_users_personal_details, disbursed_users_awarded):
+            pdf.cell(9, 10, str(s_no), 1)
+            pdf.cell(60, 10, student.fullname, 1)
+            pdf.cell(15, 10, student.gender, 1)
+            pdf.cell(80, 10, student.institution, 1)
+            pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+            total +=awarded_data.awarded
+            s_no += 1
+            
+        pdf.set_font("Arial", style='B', size=10)
+        
+        pdf.cell(9, 10, "", 1, 0, 'C', 1)
+        pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+        pdf.cell(15, 10, "", 1, 0, 'L', 1)
+        pdf.cell(80, 10, "", 1, 0, 'C', 1)
+        pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+        pdf.set_font("Arial", size=12)
+
+
+        # #########################SEC ##########################
+        #######sec_data
+        all_disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').values_list('user_id', flat=True)
+        disbursed_users_personal_details_sec = PersonalDetails.objects.filter(user_id__in=all_disbursed_sec)
+        disbursed_users_awarded_sec = UploadedDocuments.objects.filter(user_id__in=all_disbursed_sec)
+    
+        pdf.ln(20)
+
+        # Create a table header
+        pdf.set_fill_color(0, 191, 255)  # Light Blue
+        pdf.set_font("Arial", style='B', size=12)
+        pdf.cell(0,6, f"[ii] Secondary Education", ln=True, align="L")
+        pdf.set_font("Arial", style='B', size=8)
+
+
+        pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+        pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+        pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+        pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
+        pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+        # Create a table with student details
+        pdf.set_fill_color(255, 255, 255)  # White
+        pdf.set_font("Arial", size=8)
+        s_no = 1
+        total = 0
+        for student, awarded_data in zip(disbursed_users_personal_details_sec, disbursed_users_awarded_sec):
+            pdf.cell(9, 10, str(s_no), 1)
+            pdf.cell(60, 10, student.fullname, 1)
+            pdf.cell(15, 10, student.gender, 1)
+            pdf.cell(80, 10, student.institution, 1)
+            pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+            total +=awarded_data.awarded
+            s_no += 1
+            
+        pdf.set_font("Arial", style='B', size=10)
+        
+        pdf.cell(9, 10, "", 1, 0, 'C', 1)
+        pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+        pdf.cell(15, 10, "", 1, 0, 'L', 1)
+        pdf.cell(80, 10, "", 1, 0, 'C', 1)
+        pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+        pdf.set_font("Arial", size=12)
+
+        ####institution
+        ###inst data
+        try:
+            awarded_id_list = User.objects.filter(last_name='Institution').values_list('id', flat=True)
+            awarded = UploadedDocuments.objects.filter(application=last_application, user_id__in=awarded_id_list)
+            
+            # Check if there are no awarded records
+            
+        except UploadedDocuments.DoesNotExist:
+            awarded = 'No Schools/Institution Has been Awarded yet.'
+
+    
+        pdf.ln(20)
+        pdf.set_fill_color(0, 191, 255)  # Light Blue
+        pdf.set_font("Arial", style='B', size=12)
+        pdf.cell(0,6, f"[iii] Institutions", ln=True, align="L")
+        pdf.set_font("Arial", style='B', size=8)
+
+        pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+        pdf.cell(60+95, 10, "Institution Name", 1, 0, 'L', 1)
+        pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+        s_no = 1
+        total = 0
+        for awards in awarded:
+            pdf.cell(9, 10, str(s_no), 1)
+            pdf.cell(60+95, 10, awards.user.first_name, 1)
+            pdf.cell(20, 10, "{:,}".format(awards.awarded), 1, ln=True)
+            total += awards.awarded
+            s_no += 1
+        
+        pdf.set_font("Arial", style='B', size=10)
+        
+        pdf.cell(9, 10, "", 1, 0, 'C', 1)
+        pdf.cell(60+95, 10, "TOTAL", 1, 0, 'L', 1)
+        pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+    
+        pdf.ln(20)
+        pdf.set_font("Arial", style='B', size=16)
+        pdf.cell(0,6, "Total Amount Disbursed = {:,}".format(approved_sum), ln=True, align="L")
+
+        response = HttpResponse(content_type="application/pdf")
+        response["Content-Disposition"] = f'attachment; filename="Report-{owner.county}-{last_application}.pdf"'
+        response.write(pdf.output(dest='S').encode('latin1'))
+        return response
+    try:
+        all_application = Application.objects.all()
+
+    except Application.DoesNotExist:
+        all_application = "No Active Application."
+
+    context = {
+        'owner':OwnerDetails.objects.last(),
+        'last_application':Application.objects.last(),
+        'all_applications':all_application,
+    }
+    return render(request, 'users/reports.html',context)
+
+@staff_member_required
+def forwarding_letter_institution(request, institution):
+    current_application = Application.objects.last()
+    owner = OwnerDetails.objects.last()
+
+    # Get the user IDs of approved users in the current application
+    approved_user_ids = UploadedDocuments.objects.filter(application_status='Approved', application=current_application).values_list('user_id', flat=True)
+    approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution)
+    approved_users_personal_details_id = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution).values_list('user_id', flat=True)
+
+    personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution).last()
+    uploaded_users_data = UploadedDocuments.objects.filter(user_id__in=approved_users_personal_details_id,application=current_application)
+    
+        # Assuming you have already filtered the queryset to include relevant documents
+    awarded_sum = UploadedDocuments.objects.filter(
+        user_id__in=approved_users_personal_details_id,  # Filter by user IDs
+        application=current_application,  # Filter by application
+    ).aggregate(total_awarded=Sum('awarded'))
+
+    # The 'total_awarded' key in the result dictionary contains the sum of 'awarded' values
+    total_awarded_value = awarded_sum.get('total_awarded', 0)  # Get the value or default to 0 if None
+    total_awarded_in_words = num2words(total_awarded_value)
+    total_awarded_in_words = total_awarded_in_words.title()
+
+    Email_Address = request.user.email
+    Constituency_Name = owner.name
+    fullname=request.user.first_name + ' '+ request.user.last_name
+    
+    current_date_formatted = date(datetime.now(), "F d, Y")
+    # print(f"Date: {current_date_formatted}")
+
+
+
+    pdf = FPDF()
+
+    pdf.add_page()
+
+    pdf.set_font("Times", 'B', size=10)
+
+        # Specify the image path and original width
+    image_path = 'static/images/overall.jpg'
+    original_img_width = 50  # Adjust this to the original width of your image
+
+    # Calculate the new width for the image (e.g., half of the original width)
+    img_width = original_img_width / 2
+
+    # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+    pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
+
+    # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+    pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+    pdf.cell(0, 4, f"{Constituency_Name}", ln=True, align="R")
+    pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+    pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+    pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+    pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
+    pdf.ln(4)
+    pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+    pdf.ln(4)
+   
+    pdf.set_line_width(2)
+
+    # Define the starting X and Y coordinates for the line
+    x1 = 10  # 20px from the left margin
+    x2 = pdf.w - 10  # 20px from the right margin
+    y = pdf.get_y()  # Maintain the current Y position
+
+    # Draw a horizontal line by drawing a line
+    pdf.line(x1, y, x2, y)
+    pdf.set_line_width(0.5)
+    pdf.ln(4)
+
+    pdf.cell(0, 4, f"REF:..................................................................................................", align="L")
+    pdf.cell(0, 4, f"{current_date_formatted}", ln=True, align="R")
+
+
+    pdf.ln(6)
+    pdf.cell(0, 5.5, f"The Finance Department,", ln=True, align="L")
+    pdf.cell(0, 5.5, f"{institution},", ln=True, align="L")
+    pdf.cell(0, 5.5, f"P. O. Box: {personal_details.institution_postal_address},", ln=True, align="L")
+
+    
+    pdf.ln(5)
+    pdf.set_font("Times", 'B', size=12)
+
+    pdf.cell(0,6, "Dear Sir/Madam,", ln=True, align="L")
+    pdf.ln(3)
+
+
+    pdf.multi_cell(0, 6, f"RE: Bursary Allocation For FY {current_application.id_for_reference}.")
+    pdf.set_line_width(.5)
+
+    # Define the starting X and Y coordinates for the line
+    x1 = 11  # 20px from the left margin
+    x2 = pdf.w - 120 # 20px from the right margin
+    y = pdf.get_y()  # Maintain the current Y position
+
+    # Draw a horizontal line by drawing a line
+    pdf.line(x1, y, x2, y)
+    pdf.set_line_width(0.5)
+
+    pdf.ln(3)
+    pdf.set_font("Times", size=12)
+    # total_awarded_value = "{:,}".format(total_awarded_value)
+    # pdf.multi_cell(0,6,f'Enclosed herewith, please find Cheque no:........................... amounting to Kshs. {total_awarded_in_words} ({total_awarded_value}/=) only dated {current_date_formatted} in the benefit of the students listed below:-')
+    pdf.multi_cell(0,6,'Enclosed herewith, please find Cheque no:........................... amounting to Kshs. {a} ({t:,}/=) only dated {c} in the benefit of the students listed below:-'.format(a=total_awarded_in_words, c=current_date_formatted,t=total_awarded_value))
+    pdf.ln(3)
+
+    # Create a table header
+    pdf.set_fill_color(0, 191, 255)  # Light Blue
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(0,6, f"{institution}", ln=True, align="C")
+    pdf.set_font("Arial", style='B', size=8)
+
+
+    pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Course", 1, 0, 'L', 1)
+    pdf.cell(35, 10, "Admission Number", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+    # Create a table with student details
+    pdf.set_fill_color(255, 255, 255)  # White
+    pdf.set_font("Arial", size=8)
+    s_no = 1
+    for student, awarded_data in zip(approved_users_personal_details, uploaded_users_data):
+        pdf.cell(9, 10, str(s_no), 1)
+        pdf.cell(60, 10, student.fullname, 1)
+        pdf.cell(60, 10, student.course, 1)
+        pdf.cell(35, 10, student.admin_no, 1)
+        pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+        UploadedDocuments.objects.filter(user=student.user,application=current_application).update(application_status = 'Disbursed')
+        s_no += 1
+        
+    pdf.set_font("Arial", style='B', size=10)
+    
+    pdf.cell(9, 10, "", 1, 0, 'C', 1)
+    pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "", 1, 0, 'L', 1)
+    pdf.cell(35, 10, "", 1, 0, 'C', 1)
+    pdf.cell(20, 10, "{:,}".format(total_awarded_value), 1, 1, 'L', 1)
+    pdf.set_font("Arial", size=12)
+
+    pdf.ln(10)
+    pdf.multi_cell(0,8,'Please acknowledge formally receipt of the above cheque and in case of any changes the CDF office has all the discretion to award any needy students.')
+    pdf.cell(0,6, "Thank you for your co-operation.")
+    pdf.ln(20)
+    pdf.cell(0,6,"Yours's Faithfully,")
+    pdf.ln(20)
+    pdf.cell(0,6,f"{owner.name_of_the_chairperson},", ln=True)
+   
+    pdf.cell(0,6,"CDF Chairperson.", ln=True)
+
+    pdf.cell(0,6,f"{owner.name}.", ln=True)
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{institution}_FY_{current_application.id_for_reference}.pdf"'
+    response.write(pdf.output(dest='S').encode('latin1'))
+    return response
+
+
+
+
+
+
+@staff_member_required
+def create_institution(request):
+    if request.method == 'POST':
+        institution_name = request.POST["institution_name"]
+        institution_Reference = request.POST['institution_Reference']
+
+        if User.objects.filter(username=institution_Reference):
+            messages.error(request, f"Institution with {institution_Reference} already exists. Try again!")
+            return redirect('create_institution')
+        new_inst = User.objects.create_user(institution_Reference)
+        new_inst.first_name  = institution_name
+        new_inst.last_name  = 'Institution'
+        new_inst.save()
+        messages.success(request, "Institution has been successfully created.")
+        return redirect('create_institution')
+    
+
+
+    try:
+        current_application = Application.objects.last()
+
+    except:
+        current_application = 'No Active Application.'
+
+    try:
+        awarded_id_list = User.objects.filter(last_name='Institution').values_list('id', flat=True)
+        awarded = UploadedDocuments.objects.filter(application=current_application, user_id__in=awarded_id_list)
+        
+        # Check if there are no awarded records
+        
+    except UploadedDocuments.DoesNotExist:
+        awarded = 'No Schools/Institution Has been Awarded yet.'
+
+
+    context = {
+        'owner':OwnerDetails.objects.last(),
+        'institutions':User.objects.filter(last_name='Institution'),
+        'application':current_application,
+        'awarded':awarded,
+    }
+    return render(request, 'users/create_institution.html',context)
+
+
+
+@staff_member_required#
+def institution_profile(request, inst_name):
+    institution = get_object_or_404(User, username=inst_name)
+
+    try:
+        current_application = Application.objects.last()
+
+    except:
+        current_application = 'Application is Created Yet.'
+    
+    if request.method == 'POST':
+        amount = request.POST["amount"]
+        if UploadedDocuments.objects.filter(application=current_application,user=institution):
+            messages.error(request, f"The {institution.first_name} already Awarded.")
+            return redirect('create_institution')
+        else:
+            awarding = UploadedDocuments(
+                user=institution,
+                awarded= amount,
+                funds_for = 'Secondary',
+                application_status = 'Disbursed',
+                application=current_application,
+                approved_by=request.user.first_name + " "+ request.user.last_name,
+            )
+            awarding.save()
+            messages.info(request, f"The {institution.first_name} has been Awarded {amount}.")
+            return redirect('create_institution')
+
+
+
+
+    context = {
+       'institution':institution,
+       'owner':OwnerDetails.objects.last() 
+    }
+    return render(request, "users/inst_award.html",context)
+
+
+
+
+
+
+
+
+
