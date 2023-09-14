@@ -1,9 +1,19 @@
 {% autoescape off %}
 
- Welcome to {{owner.county}}.
- Hello {{ name }}!!
- Please confirm your email by clicking on the following link.
+Dear {{ name }},
 
- Confirmation Link: http://{{ domain }}{% url 'activate' uidb64=uid token=token %} 
+Welcome to {{owner.county}} Bursary Application Portal! We're thrilled to have you as a member of our community. To get started, please verify your email address by clicking on the link below:
+
+Verification Link: http://{{ domain }}{% url 'activate' uidb64=uid token=token %}
+
+Verifying your email address is essential in ensuring that your account is activated and that you can use all of the portal's features.
+
+If you didn't create an account with us, please ignore this email, and your account will remain inactive.
+
+Thank You
+
+
+{{owner.name_of_the_chairperson}}
+Chairperson.
 
  {% endautoescape %}

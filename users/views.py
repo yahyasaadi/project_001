@@ -37,14 +37,22 @@ from num2words import num2words
 def home(request):
     owner = OwnerDetails.objects.first()
     last_application = Application.objects.last()
+
     try:
         already = UploadedDocuments.objects.get(user=request.user,application=last_application)   
     except UploadedDocuments.DoesNotExist:
         already = None
     
     if already is not None:
-        return redirect('apply')
+        if request.user.is_staff:
+            return redirect('staff_dashboard')
+        else:
+            return redirect('apply')
+    
     else:
+        if request.user.is_staff:
+            return redirect('staff_dashboard')
+        
         return render(request, "users/home.html",{'owner':owner})
 
 def signup(request):
@@ -53,6 +61,7 @@ def signup(request):
         username = request.POST['username']
         fname = request.POST['fname']
         lname = request.POST['lname']
+        mname = request.POST['mname']
         email = request.POST['email']
         pass1 = request.POST['pass1']
         pass2 = request.POST['pass2']
@@ -65,8 +74,8 @@ def signup(request):
             messages.error(request, "Email already registered. Use another email.")
             return redirect('signup')
         
-        if len(username) > 10 or len(username) < 3:
-            messages.error(request, "Username must be between 3 to 10 characters long!")
+        if len(username) > 20 or len(username) < 3:
+            messages.error(request, "Username must be between 3 to 20 characters long!")
             return redirect('signup')
 
         if pass1 != pass2:
@@ -78,7 +87,7 @@ def signup(request):
             return redirect('signup')
 
         new_user = User.objects.create_user(username, email, pass1)
-        new_user.first_name = fname
+        new_user.first_name = fname + ' ' + mname
         new_user.last_name = lname
         new_user.is_active = False
         new_user.save()
@@ -87,21 +96,21 @@ def signup(request):
 
        
         # welcome email
-        email = EmailMessage(
-            subject=f"Welcome to {owner.county} Portal!!",
-            body="Hello " + new_user.first_name + "!! \n" + f"Welcome to {owner.county}. \nThank you for visiting our website.\nWe have also sent you a confirmation email, please confirm your email address. \n\nThanking You\n{owner.name_of_the_chairperson}, Chairperson.",
-            from_email=settings.EMAIL_HOST_USER,
-            to=[new_user.email],
-        )
+        # email = EmailMessage(
+        #     subject=f"Welcome to {owner.county} Portal!!",
+        #     body="Hello " + new_user.first_name + "!! \n" + f"Welcome to {owner.county}. \nThank you for visiting our website.\nWe have also sent you a confirmation email, please confirm your email address. \n\nThank You\n{owner.name_of_the_chairperson}, Chairperson.",
+        #     from_email=settings.EMAIL_HOST_USER,
+        #     to=[new_user.email],
+        # )
         # email.fail_silently = True
-        email.send()
+        # email.send()
 
 
         # Email Address Confirmation Email
         current_site = get_current_site(request)
         email_subject = f"Confirm your Email @ {owner.county}!"
         message2 = render_to_string('email_confirmation.html',{
-            
+            'owner':owner,
             'name': new_user.first_name,
             'domain': current_site.domain,
             'uid': urlsafe_base64_encode(force_bytes(new_user.pk)),
@@ -337,6 +346,15 @@ def personal_details(request):
     if request.method == 'POST':
         user = request.user
         fullname = request.POST['fullname']
+
+        if fullname != request.user.get_full_name():
+            
+            fullname_ls = fullname.split()
+            User.objects.filter(username=request.user).update(
+                first_name = fullname_ls[0] + " " + fullname_ls[1],
+                last_name = fullname_ls[2]
+            )
+
         education_level = request.POST['education_level']
         id_or_passport_no = request.POST['id_or_passport_no']
         gender = request.POST['gender']
@@ -398,16 +416,26 @@ def personal_details(request):
     else:
         owner = OwnerDetails.objects.first()
         personal_details = PersonalDetails.objects.filter(user = request.user).exists()
+        user = User.objects.get(username=request.user)
+        print(f'User: ---- {user.first_name}')
         if personal_details is True:
             return redirect('update_personal_details')
-        return render(request, 'users/personal_details.html',{"owner":owner})
+        return render(request, 'users/personal_details.html',{"owner":owner,'user':user})
 
 @login_required
 def update_personal_details(request):
     if request.method == 'POST':
         user = request.user
-        print(user)
+
         fullname = request.POST['fullname']
+        
+        if fullname != request.user.get_full_name():
+            fullname_ls = fullname.split()
+            User.objects.filter(username=request.user).update(
+                first_name = fullname_ls[0] + " " + fullname_ls[1],
+                last_name = fullname_ls[2]
+            )
+
         education_level = request.POST['education_level']
         
         id_or_passport_no = request.POST['id_or_passport_no']
@@ -464,13 +492,13 @@ def update_personal_details(request):
             ammount_requesting=ammount_requesting
         )
         
-        print(updating)
+        
         if updating:
-            print(updating)
+            
             return redirect('family_background')
 
         else:
-            print('not updated')
+            
             return render(request, 'users/personal_detailsUpdate.html',{"owner":owner,'personal_details':personal_details})
 
 
@@ -888,9 +916,6 @@ def returning_applicants(request):
         'zipped_returning':zip(their_profile,application_applied),
         'owner':owner}
     return render(request, 'users/returning_applicants.html',context)
-
-
-
 
 
 
@@ -2205,87 +2230,144 @@ def reports(request):
 
 
 
+
+
+
+
+
+        current_application = last_application
+        users_a =[user for user in User.objects.all() if user.last_name != "Institution"]
+        user_list = users_a
+
+        # Get the user IDs of disbursed users in the current application
+        disbursed_user_ids = UploadedDocuments.objects.filter(application_status='Disbursed', application=current_application,user_id__in = user_list).values_list('user_id', flat=True)
+
+        # Get the PersonalDetails objects for disbursed users
+        disbursed_users_personal_details = PersonalDetails.objects.filter(user_id__in=disbursed_user_ids)
+
+        # Create dictionaries to store the grouped users by institution
+        grouped_users_by_secondary = {}
+        grouped_users_by_higher_education = {}
+
+        # Group the disbursed users by their institution
+        sorted_users = sorted(disbursed_users_personal_details, key=lambda x: x.institution)
+
+        for institution, users in groupby(sorted_users, key=lambda x: x.institution):
+            # Convert the 'users' iterator to a list to store all users for the institution
+            user_list = list(users)
+
+            # Check if the institution name ends with "school" or "schools"
+            if institution.lower().endswith(("school", "schools")):
+                grouped_users_by_secondary[institution] = user_list
+            else:
+                grouped_users_by_higher_education[institution] = user_list
+
+        # Now, 'grouped_users_by_secondary' contains secondary institutions, and 'grouped_users_by_higher_education' contains higher education institutions.
+
+
         pdf.set_font("Arial", style='B', size=12)
         pdf.ln(14)
 
         pdf.cell(0,6, "[i] Higher Education", ln=True, align="L")
+        
         pdf.set_font("Arial", style='B', size=8)
 
+        for institution_name, users in grouped_users_by_higher_education.items():
+            # user_list = list(users)
 
-        pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
-        pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
-        pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
-        pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
-        pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+            pdf.set_font("Arial", style='B', size=16)
+            pdf.ln(3)
 
-        # Create a table with student details
-        pdf.set_fill_color(255, 255, 255)  # White
-        pdf.set_font("Arial", size=8)
-        s_no = 1
-        total = 0
-        for student, awarded_data in zip(disbursed_users_personal_details, disbursed_users_awarded):
-            pdf.cell(9, 10, str(s_no), 1)
-            pdf.cell(60, 10, student.fullname, 1)
-            pdf.cell(15, 10, student.gender, 1)
-            pdf.cell(80, 10, student.institution, 1)
-            pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
-            total +=awarded_data.awarded
-            s_no += 1
+            pdf.cell(0,6, f"{institution_name}", ln=True, align="L")
+            pdf.set_font("Arial", style='B', size=8)
+
+            pdf.set_fill_color(0, 191, 255)  # Light Blue
+            pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+            pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+            pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+            pdf.cell(80, 10, "Admission/Registration No.", 1, 0, 'L', 1)
+            pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+            # Create a table with student details
+            pdf.set_fill_color(255, 255, 255)  # White
+            pdf.set_font("Arial", size=8)
+            s_no = 1
+            total = 0
+            for student in users:
+                awarded_data = UploadedDocuments.objects.get(application = current_application, user = student.user)
+                print(f"awarded == {awarded_data}")
+                pdf.cell(9, 10, str(s_no), 1)
+                pdf.cell(60, 10, student.fullname, 1)
+                pdf.cell(15, 10, student.gender, 1)
+                pdf.cell(80, 10, student.admin_no, 1)
+                pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True) 
+                total +=awarded_data.awarded
+                s_no += 1
+                
+            pdf.set_font("Arial", style='B', size=10)
+            pdf.set_fill_color(0, 191, 255)  # Light Blue
             
-        pdf.set_font("Arial", style='B', size=10)
-        
-        pdf.cell(9, 10, "", 1, 0, 'C', 1)
-        pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
-        pdf.cell(15, 10, "", 1, 0, 'L', 1)
-        pdf.cell(80, 10, "", 1, 0, 'C', 1)
-        pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
-        pdf.set_font("Arial", size=12)
-
+            pdf.cell(9, 10, "", 1, 0, 'C', 1)
+            pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+            pdf.cell(15, 10, "", 1, 0, 'L', 1)
+            pdf.cell(80, 10, "", 1, 0, 'C', 1)
+            pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+            pdf.set_font("Arial", size=12)
+            pdf.ln(15)
 
         # #########################SEC ##########################
         #######sec_data
-        all_disbursed_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').values_list('user_id', flat=True)
-        disbursed_users_personal_details_sec = PersonalDetails.objects.filter(user_id__in=all_disbursed_sec)
-        disbursed_users_awarded_sec = UploadedDocuments.objects.filter(user_id__in=all_disbursed_sec)
-    
-        pdf.ln(20)
 
-        # Create a table header
-        pdf.set_fill_color(0, 191, 255)  # Light Blue
+
+
+
         pdf.set_font("Arial", style='B', size=12)
-        pdf.cell(0,6, f"[ii] Secondary Education", ln=True, align="L")
+        pdf.ln(14)
+
+        pdf.cell(0,6, "[ii] Secondary Education", ln=True, align="L")
+        
         pdf.set_font("Arial", style='B', size=8)
 
+        for institution_name, users in grouped_users_by_secondary.items():
+            # user_list = list(users)
+            pdf.set_font("Arial", style='B', size=16)
+            pdf.ln(3)
+            pdf.cell(0,6, f"{institution_name}", ln=True, align="L")
+            pdf.set_font("Arial", style='B', size=8)
 
-        pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
-        pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
-        pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
-        pdf.cell(80, 10, "Institution", 1, 0, 'L', 1)
-        pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+            pdf.set_fill_color(0, 191, 255)  # Light Blue
+            pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+            pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+            pdf.cell(15, 10, "Gender", 1, 0, 'L', 1)
+            pdf.cell(80, 10, "Admission/Registration No.", 1, 0, 'L', 1)
+            pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
 
-        # Create a table with student details
-        pdf.set_fill_color(255, 255, 255)  # White
-        pdf.set_font("Arial", size=8)
-        s_no = 1
-        total = 0
-        for student, awarded_data in zip(disbursed_users_personal_details_sec, disbursed_users_awarded_sec):
-            pdf.cell(9, 10, str(s_no), 1)
-            pdf.cell(60, 10, student.fullname, 1)
-            pdf.cell(15, 10, student.gender, 1)
-            pdf.cell(80, 10, student.institution, 1)
-            pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
-            total +=awarded_data.awarded
-            s_no += 1
+            # Create a table with student details
+            pdf.set_fill_color(255, 255, 255)  # White
+            pdf.set_font("Arial", size=8)
+            s_no = 1
+            total = 0
+            for student in users:
+                awarded_data = UploadedDocuments.objects.get(application = current_application, user = student.user)
+                print(f"awarded == {awarded_data}")
+                pdf.cell(9, 10, str(s_no), 1)
+                pdf.cell(60, 10, student.fullname, 1)
+                pdf.cell(15, 10, student.gender, 1)
+                pdf.cell(80, 10, student.admin_no, 1)
+                pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True) 
+                total +=awarded_data.awarded
+                s_no += 1
+                
+            pdf.set_font("Arial", style='B', size=10)
+            pdf.set_fill_color(0, 191, 255)  # Light Blue
             
-        pdf.set_font("Arial", style='B', size=10)
-        
-        pdf.cell(9, 10, "", 1, 0, 'C', 1)
-        pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
-        pdf.cell(15, 10, "", 1, 0, 'L', 1)
-        pdf.cell(80, 10, "", 1, 0, 'C', 1)
-        pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
-        pdf.set_font("Arial", size=12)
-
+            pdf.cell(9, 10, "", 1, 0, 'C', 1)
+            pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+            pdf.cell(15, 10, "", 1, 0, 'L', 1)
+            pdf.cell(80, 10, "", 1, 0, 'C', 1)
+            pdf.cell(20, 10, "{:,}".format(total), 1, 0, 'L', 1)
+            pdf.set_font("Arial", size=12)
+            pdf.ln(15)
         ####institution
         ###inst data
         try:

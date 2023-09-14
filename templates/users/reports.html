@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="container text-light mt-5">
-    <h4> Recent Application - {{last_application.name_of_application}} - <a href="{% url 'approved_lst_pdf' %}">Download</a></h4>
+
     
     <form action="{% url 'reports' %}" method="post">
         {% csrf_token %}
