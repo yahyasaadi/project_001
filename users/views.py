@@ -625,6 +625,10 @@ def staff_dashboard(request):
     user = request.user
     fname = user.first_name
     owner = OwnerDetails.objects.last()
+
+    users_a =[user for user in User.objects.all() if user.last_name != "Institution"]
+    user_list = users_a
+
     peronal_details = PersonalDetails.objects.all()
     family_background = FamilyBackaground.objects.all()
     additional_info = AdditionalInformation.objects.all()
@@ -650,11 +654,11 @@ def staff_dashboard(request):
     
     approved_user_ids = UploadedDocuments.objects.filter(application_status='Approved', application=application).values_list('user_id', flat=True)
 
-    disbursed_ed_user_ids = UploadedDocuments.objects.filter(application_status='Disbursed', application=application).values_list('user_id', flat=True)
+    disbursed_ed_user_ids = UploadedDocuments.objects.filter(application_status='Disbursed', application=application,user_id__in=user_list).values_list('user_id', flat=True)
     disbursed_users_personal_details = PersonalDetails.objects.filter(user_id__in=disbursed_ed_user_ids)
     status_for_all_disbursed = UploadedDocuments.objects.filter(user_id__in=disbursed_ed_user_ids)
 
-
+    
 
     approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids)
     funds_for_all_user = UploadedDocuments.objects.filter(user_id__in=approved_user_ids)
@@ -2676,7 +2680,36 @@ def institution_profile(request, inst_name):
 
 
 
+@staff_member_required
+def view_institution(request, institution_name):
+    institution=institution_name
+    current_application = Application.objects.last()
+    owner = OwnerDetails.objects.last()
 
+    # Get the user IDs of approved users in the current application
+    approved_user_ids = UploadedDocuments.objects.filter(application_status='Approved', application=current_application).values_list('user_id', flat=True)
+    approved_users_personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution)
+    approved_users_personal_details_id = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution).values_list('user_id', flat=True)
+
+    uploaded_users_data = UploadedDocuments.objects.filter(user_id__in=approved_users_personal_details_id,application=current_application)
+    
+        # Assuming you have already filtered the queryset to include relevant documents
+    awarded_sum = UploadedDocuments.objects.filter(
+        user_id__in=approved_users_personal_details_id,  # Filter by user IDs
+        application=current_application,  # Filter by application
+    ).aggregate(total_awarded=Sum('awarded'))
+
+    # The 'total_awarded' key in the result dictionary contains the sum of 'awarded' values
+    total_awarded_value = awarded_sum.get('total_awarded', 0)  # Get the value or default to 0 if None
+    
+    context = {
+        'owner':owner,
+        'institution':institution,
+        'total_awarded_value':total_awarded_value,
+        'zipped_date':zip(approved_users_personal_details, uploaded_users_data)
+
+    }
+    return render(request, 'users/view_institution.html', context)
 
 
 

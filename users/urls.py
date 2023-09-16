@@ -31,7 +31,11 @@ urlpatterns = [
     
 
     path('user/<int:user_id>/', views.user_profile, name='user_profile'),
+
     path('institution/<str:inst_name>/', views.institution_profile, name='institution_profile'),
+
+    path('view_institution/<str:institution_name>/', views.view_institution, name='view_institution'),
+
     path('forwarding_letter_institution/<str:institution>/', views.forwarding_letter_institution, name='forwarding_letter_institution'),
 
 

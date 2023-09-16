@@ -186,6 +186,13 @@ img {
     width: 100%;
     text-align: center;
   }
+  .image-sizing{
+    width: 100%;
+    height: 60%;
+  }
+  .move-top{
+    margin-top: -90px;
+  }
 }
 .personal_details{
   text-transform: uppercase;
@@ -213,3 +220,4 @@ img {
 .content p {
   font-size: 14px;
 }
+
