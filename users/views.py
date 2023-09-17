@@ -1574,6 +1574,7 @@ def apply(request):
 @staff_member_required
 def generate_bursary_letter(request, user_id):
     user1 = get_object_or_404(User, pk=user_id)
+
     personal_details = PersonalDetails.objects.get(user=user1)
     last_application = Application.objects.last()
     owner = OwnerDetails.objects.last()
@@ -1587,9 +1588,11 @@ def generate_bursary_letter(request, user_id):
 
 
     current_date_formatted = date(datetime.now(), "F d, Y")
+    current_date1= datetime.now().strftime("%Y-%m-%d, Time: %H:%M:%S") 
 
     UploadedDocuments.objects.filter(user=user1,application=last_application).update(
-        application_status = 'Disbursed'
+        application_status = 'Disbursed',
+        letter_id = f"S_{institution_name}_FY_{last_application.id_for_reference}_dt_{current_date1}"
     )
 
     if personal_details.gender == 'male':
@@ -2441,6 +2444,7 @@ def forwarding_letter_institution(request, institution):
     approved_users_personal_details_id = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution).values_list('user_id', flat=True)
 
     personal_details = PersonalDetails.objects.filter(user_id__in=approved_user_ids,institution=institution).last()
+
     uploaded_users_data = UploadedDocuments.objects.filter(user_id__in=approved_users_personal_details_id,application=current_application)
     
         # Assuming you have already filtered the queryset to include relevant documents
@@ -2454,9 +2458,8 @@ def forwarding_letter_institution(request, institution):
     total_awarded_in_words = num2words(total_awarded_value)
     total_awarded_in_words = total_awarded_in_words.title()
 
-    Email_Address = request.user.email
     Constituency_Name = owner.name
-    fullname=request.user.first_name + ' '+ request.user.last_name
+    
     
     current_date_formatted = date(datetime.now(), "F d, Y")
     # print(f"Date: {current_date_formatted}")
@@ -2556,14 +2559,19 @@ def forwarding_letter_institution(request, institution):
     pdf.set_fill_color(255, 255, 255)  # White
     pdf.set_font("Arial", size=8)
     s_no = 1
+    current_date1= datetime.now().strftime("%Y-%m-%d, Time: %H:%M:%S")
     for student, awarded_data in zip(approved_users_personal_details, uploaded_users_data):
         pdf.cell(9, 10, str(s_no), 1)
         pdf.cell(60, 10, student.fullname, 1)
         pdf.cell(60, 10, student.course, 1)
         pdf.cell(35, 10, student.admin_no, 1)
         pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
-        UploadedDocuments.objects.filter(user=student.user,application=current_application).update(application_status = 'Disbursed')
+        UploadedDocuments.objects.filter(user=student.user,application=current_application).update(
+            application_status = 'Disbursed',
+            letter_id = f"J_{institution}_FY_{current_application.id_for_reference}_dt{current_date1}"
+            )
         s_no += 1
+       
         
     pdf.set_font("Arial", style='B', size=10)
     
@@ -2576,9 +2584,10 @@ def forwarding_letter_institution(request, institution):
 
     pdf.ln(10)
     pdf.multi_cell(0,8,'Please acknowledge formally receipt of the above cheque and in case of any changes the CDF office has all the discretion to award any needy students.')
-    pdf.cell(0,6, "Thank you for your co-operation.")
+    pdf.multi_cell(0,8,'N/B; The document is of high sensitive nature. Please note that it should remain confidential between our two offices. The document should not be shared with any third parties.')
+    pdf.cell(0,6, "Thank you for your attention to this matter.")
     pdf.ln(20)
-    pdf.cell(0,6,"Yours's Faithfully,")
+    pdf.cell(0,6,"Yours Sincerely,")
     pdf.ln(20)
     pdf.cell(0,6,f"{owner.name_of_the_chairperson},", ln=True)
    
@@ -2710,6 +2719,328 @@ def view_institution(request, institution_name):
 
     }
     return render(request, 'users/view_institution.html', context)
+
+
+
+
+@staff_member_required
+def retrieve_letter(request):
+    # Get unique letter_id values
+    unique_letter_ids = UploadedDocuments.objects.values_list('letter_id', flat=True).distinct()
+
+    # Filter out None values from the list
+    unique_letter_ids = [letter_id for letter_id in unique_letter_ids if letter_id is not None]
+    print(unique_letter_ids)
+    context = {
+        "owner":OwnerDetails.objects.last(),
+        "unique_letter_ids": unique_letter_ids
+    }
+    return render(request, "users/retrieve_letter.html", context)
+
+
+
+
+
+
+
+
+
+@staff_member_required
+def retrieve_a_letter(request):
+    if request.method == "POST":
+        
+        letter_id = request.POST['letter_id']
+        letter_date  = letter_id.split("_dt_")[1]
+        letter_date = letter_date.split(",")[0] 
+        letter_date = datetime.strptime(letter_date.strip(), "%Y-%m-%d")
+        current_date_formatted = date(letter_date, "F d, Y")
+
+
+        if letter_id[0] == 'S':
+            upload_details = UploadedDocuments.objects.get(letter_id=letter_id)
+            user = upload_details.user
+
+            personal_details = PersonalDetails.objects.get(user=user)
+
+            last_application = upload_details.application
+
+            owner = OwnerDetails.objects.last()
+
+
+            recipient_name = personal_details.fullname
+            institution_name = personal_details.institution
+            amount_awarded = upload_details.awarded
+            course_name = personal_details.course
+            Constituency_Name = owner.name
+
+
+
+
+
+
+            if personal_details.gender == 'male':
+                pronoun = 'his'
+            else:
+                pronoun = 'her'
+
+            pdf = FPDF()
+
+            pdf.add_page()
+
+            pdf.set_font("Times", 'B', size=10)
+
+                # Specify the image path and original width
+            image_path = 'static/images/overall.jpg'
+            original_img_width = 50  # Adjust this to the original width of your image
+
+            # Calculate the new width for the image (e.g., half of the original width)
+            img_width = original_img_width / 2
+
+            # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+            pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
+
+            # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+            pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+            pdf.cell(0, 4, f"{Constituency_Name}", ln=True, align="R")
+            pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+            pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+            pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+            pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
+            pdf.ln(4)
+            pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+            pdf.ln(4)
+        
+            pdf.set_line_width(2)
+
+            # Define the starting X and Y coordinates for the line
+            x1 = 10  # 20px from the left margin
+            x2 = pdf.w - 10  # 20px from the right margin
+            y = pdf.get_y()  # Maintain the current Y position
+
+            # Draw a horizontal line by drawing a line
+            pdf.line(x1, y, x2, y)
+            pdf.set_line_width(0.5)
+            pdf.ln(4)
+
+            pdf.cell(0, 4, f"REF:..................................................................................................", align="L")
+            pdf.cell(0, 4, f"{current_date_formatted}", ln=True, align="R")
+
+
+            pdf.ln(6)
+            pdf.cell(0, 5.5, f"The Finance Department,", ln=True, align="L")
+            pdf.cell(0, 5.5, f"{personal_details.institution},", ln=True, align="L")
+            pdf.cell(0, 5.5, f"P. O. Box: {personal_details.institution_postal_address},", ln=True, align="L")
+
+            
+            pdf.ln(5)
+            pdf.set_font("Times", 'B', size=12)
+
+            pdf.cell(0,6, "Dear Sir/Madam,", ln=True, align="L")
+            pdf.ln(3)
+
+            pdf.set_font("Times", 'B', size=12)
+
+            pdf.multi_cell(0, 8, f"RE: Notification of Bursary Award for {recipient_name} of Admission/Registration No. {personal_details.admin_no} - {course_name}.")
+            pdf.ln(3)
+            pdf.set_font("Times", size=12)
+
+            letter_content = (
+                f"I hope this letter finds you in good health. I am writing to inform you about a significant "
+                f"development regarding one of your esteemed students. It is with great pleasure that I convey the news "
+                f"that {recipient_name}, a student of {course_name} at {institution_name}, has been awarded a bursary of "
+                f"Kshs. {amount_awarded} under the {Constituency_Name}, Constituency Development Fund (CDF) scheme.\n\n"
+                f"The {Constituency_Name} CDF has recognized {recipient_name}'s dedication and commitment to {pronoun} "
+                f"education, as well as {pronoun} exceptional academic achievements. After a thorough evaluation process, "
+                f"{recipient_name} has been selected as a deserving recipient of this prestigious bursary.\n\n"
+                f"The bursary award aims to provide financial assistance to students who demonstrate exemplary academic "
+                f"performance and a strong commitment to their studies. It serves as a testament to {recipient_name}'s hard "
+                f"work, dedication, and potential to contribute positively to {pronoun} field of study and society as a whole.\n\n"
+                f"We kindly request your cooperation in notifying {recipient_name} about this significant achievement. We "
+                f"believe that your institution's recognition and support will further motivate {recipient_name} to excel "
+                f"academically and contribute to the institution's reputation.\n\n"
+                f"We look forward to {recipient_name}'s continued success and academic accomplishments. Once again, please "
+                f"accept our warm congratulations on this remarkable achievement.\n\n"
+                f"If you require any further information or documentation related to the bursary award, please do not "
+                f"hesitate to contact our office.\n\n"
+            )
+
+            pdf.multi_cell(0, 5, letter_content)
+
+            pdf.cell(0,6, "Thank you for your co-operation.")
+            pdf.ln(10)
+            pdf.cell(0,6,"Yours's Faithfully,")
+            pdf.ln(15)
+            pdf.cell(0,6,f"{owner.name_of_the_chairperson},", ln=True)
+        
+            pdf.cell(0,6,"CDF Chairperson.", ln=True)
+
+            pdf.cell(0,6,f"{owner.name}.", ln=True)
+
+            response = HttpResponse(content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{recipient_name}.pdf"'
+            response.write(pdf.output(dest='S').encode('latin1'))
+            return response
+    
+        else:
+            users_ids = UploadedDocuments.objects.filter(letter_id=letter_id).values_list('user_id', flat=True)
+            personal_details_for_users = PersonalDetails.objects.filter(user_id__in=users_ids)
+            personal_detail_last = PersonalDetails.objects.filter(user_id__in=users_ids).last()
+            uploaded_users_data = UploadedDocuments.objects.filter(user_id__in=users_ids)
+            one_user = personal_detail_last.user
+
+            current_application = UploadedDocuments.objects.get(user = one_user).application
+            owner = OwnerDetails.objects.last()
+
+            # Assuming you have already filtered the queryset to include relevant documents
+            awarded_sum = UploadedDocuments.objects.filter(
+                user_id__in=users_ids,  # Filter by user IDs
+                application=current_application,  # Filter by application
+            ).aggregate(total_awarded=Sum('awarded'))
+
+            # The 'total_awarded' key in the result dictionary contains the sum of 'awarded' values
+            total_awarded_value = awarded_sum.get('total_awarded', 0)  # Get the value or default to 0 if None
+            total_awarded_in_words = num2words(total_awarded_value)
+            total_awarded_in_words = total_awarded_in_words.title()
+
+            Constituency_Name = owner.name
+
+            pdf = FPDF()
+
+            pdf.add_page()
+
+            pdf.set_font("Times", 'B', size=10)
+
+                # Specify the image path and original width
+            image_path = 'static/images/overall.jpg'
+            original_img_width = 50  # Adjust this to the original width of your image
+
+            # Calculate the new width for the image (e.g., half of the original width)
+            img_width = original_img_width / 2
+
+            # Set the x-coordinate to push the image to the left side (e.g., x=10 for a 10-unit margin)
+            pdf.image(image_path, x=10, y=pdf.get_y(), w=img_width)
+
+
+            # pdf.cell(0, 8, f"Date: {current_date}", ln=True, align="R")
+            pdf.cell(0, 4, f"NG Constituency Development Fund Committee", ln=True, align="R")
+            pdf.cell(0, 4, f"{Constituency_Name}", ln=True, align="R")
+            pdf.cell(0, 4, f"{owner.location}", ln=True, align="R")
+            pdf.multi_cell(0, 4, f"{owner.p_o_box}, {owner.p_o_box_location}", align="R")
+            pdf.multi_cell(0, 4, f"Tel: {owner.phone_number}", align="R")
+            pdf.multi_cell(0, 4, f"Email:{owner.generation_email} / {owner.manager_email}", align="R")
+            pdf.ln(4)
+            pdf.cell(0, 4, f"{owner.county}",ln=True, align="L")
+            pdf.ln(4)
+        
+            pdf.set_line_width(2)
+
+            # Define the starting X and Y coordinates for the line
+            x1 = 10  # 20px from the left margin
+            x2 = pdf.w - 10  # 20px from the right margin
+            y = pdf.get_y()  # Maintain the current Y position
+
+            # Draw a horizontal line by drawing a line
+            pdf.line(x1, y, x2, y)
+            pdf.set_line_width(0.5)
+            pdf.ln(4)
+
+            pdf.cell(0, 4, f"REF:..................................................................................................", align="L")
+            pdf.cell(0, 4, f"{current_date_formatted}", ln=True, align="R")
+
+
+            pdf.ln(6)
+            pdf.cell(0, 5.5, f"The Finance Department,", ln=True, align="L")
+            pdf.cell(0, 5.5, f"{personal_detail_last.institution},", ln=True, align="L")
+            pdf.cell(0, 5.5, f"P. O. Box: {personal_detail_last.institution_postal_address},", ln=True, align="L")
+
+            
+            pdf.ln(5)
+            pdf.set_font("Times", 'B', size=12)
+
+            pdf.cell(0,6, "Dear Sir/Madam,", ln=True, align="L")
+            pdf.ln(3)
+
+
+            pdf.multi_cell(0, 6, f"RE: Bursary Allocation For FY {current_application.id_for_reference}.")
+            pdf.set_line_width(.5)
+
+            # Define the starting X and Y coordinates for the line
+            x1 = 11  # 20px from the left margin
+            x2 = pdf.w - 120 # 20px from the right margin
+            y = pdf.get_y()  # Maintain the current Y position
+
+            # Draw a horizontal line by drawing a line
+            pdf.line(x1, y, x2, y)
+            pdf.set_line_width(0.5)
+
+            pdf.ln(3)
+            pdf.set_font("Times", size=12)
+            # total_awarded_value = "{:,}".format(total_awarded_value)
+            # pdf.multi_cell(0,6,f'Enclosed herewith, please find Cheque no:........................... amounting to Kshs. {total_awarded_in_words} ({total_awarded_value}/=) only dated {current_date_formatted} in the benefit of the students listed below:-')
+            pdf.multi_cell(0,6,'Enclosed herewith, please find Cheque no:........................... amounting to Kshs. {a} ({t:,}/=) only dated {c} in the benefit of the students listed below:-'.format(a=total_awarded_in_words, c=current_date_formatted,t=total_awarded_value))
+            pdf.ln(3)
+
+            # Create a table header
+            pdf.set_fill_color(0, 191, 255)  # Light Blue
+            pdf.set_font("Arial", style='B', size=12)
+            pdf.cell(0,6, f"{personal_detail_last.institution}", ln=True, align="C")
+            pdf.set_font("Arial", style='B', size=8)
+
+
+            pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+            pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+            pdf.cell(60, 10, "Course", 1, 0, 'L', 1)
+            pdf.cell(35, 10, "Admission Number", 1, 0, 'L', 1)
+            pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+            # Create a table with student details
+            pdf.set_fill_color(255, 255, 255)  # White
+            pdf.set_font("Arial", size=8)
+            s_no = 1
+            for student, awarded_data in zip(personal_details_for_users, uploaded_users_data):
+                pdf.cell(9, 10, str(s_no), 1)
+                pdf.cell(60, 10, student.fullname, 1)
+                pdf.cell(60, 10, student.course, 1)
+                pdf.cell(35, 10, student.admin_no, 1)
+                pdf.cell(20, 10, "{:,}".format(awarded_data.awarded), 1, ln=True)
+
+                
+                s_no += 1
+            
+                
+            pdf.set_font("Arial", style='B', size=10)
+            
+            pdf.cell(9, 10, "", 1, 0, 'C', 1)
+            pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+            pdf.cell(60, 10, "", 1, 0, 'L', 1)
+            pdf.cell(35, 10, "", 1, 0, 'C', 1)
+            pdf.cell(20, 10, "{:,}".format(total_awarded_value), 1, 1, 'L', 1)
+            pdf.set_font("Arial", size=12)
+
+            pdf.ln(10)
+            pdf.multi_cell(0,8,'Please acknowledge formally receipt of the above cheque and in case of any changes the CDF office has all the discretion to award any needy students.')
+            pdf.multi_cell(0,8,'N/B; The document is of high sensitive nature. Please note that it should remain confidential between our two offices. The document should not be shared with any third parties.')
+            pdf.cell(0,6, "Thank you for your attention to this matter.")
+            pdf.ln(20)
+            pdf.cell(0,6,"Yours Sincerely,")
+            pdf.ln(20)
+            pdf.cell(0,6,f"{owner.name_of_the_chairperson},", ln=True)
+        
+            pdf.cell(0,6,"CDF Chairperson.", ln=True)
+
+            pdf.cell(0,6,f"{owner.name}.", ln=True)
+
+            response = HttpResponse(content_type="application/pdf")
+            response["Content-Disposition"] = f'attachment; filename="Bursary_Award_Letter-{personal_detail_last.institution}_FY_{current_application.id_for_reference}.pdf"'
+            response.write(pdf.output(dest='S').encode('latin1'))
+            return response
+
+    
+    else:
+        return redirect('retrieve_letter')
+
+
 
 
 

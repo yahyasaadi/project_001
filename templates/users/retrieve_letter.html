@@ -1,0 +1,25 @@
+{% extends 'users/staff_base.html' %}
+{% load static %}
+{% block content %}
+
+<div class="container text-light mt-5">
+
+    
+    <form method="post" action="{% url 'retrieve_a_letter' %}">
+        {% csrf_token %}
+        <div class="form-group mt-4">
+            <h3>All Letters</h3>
+            <select class="form-control" name="letter_id">
+                {% for letter_id in unique_letter_ids %}
+                <option value="{{letter_id }}">{{letter_id}}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="mt-5 btn btn-primary">Download</button>
+        </div>
+    </form>
+   
+    
+</div>
+
+
+{%endblock%}
