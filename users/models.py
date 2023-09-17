@@ -229,6 +229,7 @@ class UploadedDocuments(models.Model):
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     approved_by = models.CharField(null= True,max_length=250)
+    letter_id = models.CharField(max_length=255, null=True)
 
     def __str__(self):
         return self.user.first_name  + ' ' + self.user.last_name + ' - '+self.application_status

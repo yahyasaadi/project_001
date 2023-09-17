@@ -4,7 +4,7 @@
 
 <div class="text-light">
     {% for institution, users in grouped_users_by_institution.items %}
-    <p> <span style="font-size: 20px;text-transform: uppercase;">{{ institution }} </span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <a style="color: white;" href="{% url 'forwarding_letter_institution' institution %}" target="_blank" rel="noopener noreferrer">Download Forwarding Letter for {{ institution }}</a></p>
+    <p> <span style="font-size: 20px;text-transform: uppercase;"> <a href="{% url 'view_institution' institution %}"> View Details {{ institution }} </a> </span></p>
     <ul>
         {% for user in users %}
                 

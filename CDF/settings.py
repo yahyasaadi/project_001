@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'bootstrap5',
     'users',
 ]
@@ -178,12 +179,12 @@ JAZZMIN_SETTINGS = {
         {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
 
         # external url that opens in a new window (Permissions can be added)
-        {"name": "Academic Performance", "url": "http://localhost:8000/admin/users/academicperformance/", "new_window": False},
-        {"name": "Additional Information", "url": "http://localhost:8000/admin/users/additionalinformation/", "new_window": False},
-        {"name": "Family Background", "url": "http://localhost:8000/admin/users/familybackaground/", "new_window": False},
-        {"name": "Owner Detail", "url": "http://localhost:8000/admin/users/ownerdetails/", "new_window": False},
-        {"name": "Personal Detail", "url": "http://localhost:8000/admin/users/personaldetails/", "new_window": False},
-        {"name": "Sibling", "url": "http://localhost:8000/admin/users/sibling/", "new_window": False},
+        {"name": "Academic Performance", "url": "/admin/users/academicperformance/", "new_window": False},
+        {"name": "Additional Information", "url": "/admin/users/additionalinformation/", "new_window": False},
+        {"name": "Family Background", "url": "/admin/users/familybackaground/", "new_window": False},
+        {"name": "Owner Detail", "url": "/admin/users/ownerdetails/", "new_window": False},
+        {"name": "Personal Detail", "url": "/admin/users/personaldetails/", "new_window": False},
+        {"name": "Sibling", "url": "/admin/users/sibling/", "new_window": False},
         # model admin to link to (Permissions checked against model)
         {"model": "auth.User"},
         # App with dropdown menu to all its models pages (Permissions checked against models)
