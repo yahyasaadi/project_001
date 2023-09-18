@@ -5,10 +5,19 @@
      <div class="projects mb-4">
           <div class="projects-inner">
                <header class="projects-header">
-                    <div class="title">List of Applicants</div>
-                    <div class="count">| {{applicants_count}}</div>
+                    <div class="row">
+                         <div class="col-md-3 title">
+                              List of Applicants
+                         </div>
+                         <div class="col-md-9">
+                    <input class="form-control" type="text"  id="myInput" onkeyup="myFunction()" placeholder="Search Student Name" style="border-radius: 24px;" title="Type in a Coordinator's name">
+
+                         </div>
+                    </div>
+
+                    
                </header>
-               <table class="projects-table">
+               <table id="myTable" class="projects-table">
                  <thead>
                       <tr>
                            <th>Full Name</th>

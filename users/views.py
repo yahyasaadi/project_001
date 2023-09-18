@@ -161,6 +161,7 @@ def studentsDashboard(request):
     fname = request.user.first_name
     owner = OwnerDetails.objects.first()
     last_application = Application.objects.last()
+    
     try:
         already = UploadedDocuments.objects.get(user=request.user,application=last_application)   
     except UploadedDocuments.DoesNotExist:
@@ -350,10 +351,12 @@ def personal_details(request):
         if fullname != request.user.get_full_name():
             
             fullname_ls = fullname.split()
+           
             User.objects.filter(username=request.user).update(
-                first_name = fullname_ls[0] + " " + fullname_ls[1],
-                last_name = fullname_ls[2]
+                first_name = ' '.join(fullname_ls[:-1]),
+                last_name = fullname_ls[-1]
             )
+           
 
         education_level = request.POST['education_level']
         id_or_passport_no = request.POST['id_or_passport_no']
@@ -431,11 +434,12 @@ def update_personal_details(request):
         
         if fullname != request.user.get_full_name():
             fullname_ls = fullname.split()
-            User.objects.filter(username=request.user).update(
-                first_name = fullname_ls[0] + " " + fullname_ls[1],
-                last_name = fullname_ls[2]
-            )
 
+            User.objects.filter(username=request.user).update(
+                first_name = ' '.join(fullname_ls[:-1]),
+                last_name = fullname_ls[-1]
+            )
+           
         education_level = request.POST['education_level']
         
         id_or_passport_no = request.POST['id_or_passport_no']
@@ -1487,11 +1491,28 @@ def apply(request):
             return render(request, 'users/failed.html')
 
     else:
+
+        try:
+            owner = OwnerDetails.objects.get()
+            personal_details = PersonalDetails.objects.get(user=request.user)
+            family_background = FamilyBackaground.objects.get(user=request.user)
+            siblings = Sibling.objects.filter(user=request.user)
+            additional_info = AdditionalInformation.objects.get(user=request.user)
+            academic_performance = AcademicPerformance.objects.get(user=request.user)
+            application_details = Application.objects.last()  # Make sure you have the correct way to retrieve application details
+        
+        except (OwnerDetails.DoesNotExist, PersonalDetails.DoesNotExist, FamilyBackaground.DoesNotExist,
+                Sibling.DoesNotExist, AdditionalInformation.DoesNotExist,
+                AcademicPerformance.DoesNotExist, Application.DoesNotExist):
+        
+            messages.error(request, 'Provide all the required information, including personal details, Family Info, Additional info, and Academic Performance. Ensure the information is accurate and verifiable.')
+            return redirect('students_dashboard')
+    
         owner = OwnerDetails.objects.first()
         current_date = datetime.now().date()       
 
         # Get the last added Application instance
-        last_application = Application.objects.last()
+        last_application = application_details
         try:
             already = UploadedDocuments.objects.get(user=request.user,application=last_application)   
 
@@ -2609,6 +2630,9 @@ def forwarding_letter_institution(request, institution):
 def create_institution(request):
     if request.method == 'POST':
         institution_name = request.POST["institution_name"]
+
+        inst_email = institution_name.split(' ')
+        inst_email = "".join(inst_email[:-2])
         institution_Reference = request.POST['institution_Reference']
 
         if User.objects.filter(username=institution_Reference):
@@ -2617,6 +2641,7 @@ def create_institution(request):
         new_inst = User.objects.create_user(institution_Reference)
         new_inst.first_name  = institution_name
         new_inst.last_name  = 'Institution'
+        new_inst.email  = f'secondary@{inst_email}.com'
         new_inst.save()
         messages.success(request, "Institution has been successfully created.")
         return redirect('create_institution')
@@ -2638,11 +2663,14 @@ def create_institution(request):
     except UploadedDocuments.DoesNotExist:
         awarded = 'No Schools/Institution Has been Awarded yet.'
 
+    sec_institutions = User.objects.filter(last_name='Institution', email__startswith='secondary')
+    higher_institutions = User.objects.filter(last_name='Institution', email__startswith='higher_education')
 
     context = {
         'owner':OwnerDetails.objects.last(),
-        'institutions':User.objects.filter(last_name='Institution'),
+        'sec_institutions':sec_institutions,
         'application':current_application,
+        'higher_institutions':higher_institutions,
         'awarded':awarded,
     }
     return render(request, 'users/create_institution.html',context)
@@ -2657,7 +2685,8 @@ def institution_profile(request, inst_name):
         current_application = Application.objects.last()
 
     except:
-        current_application = 'Application is Created Yet.'
+        messages.error(request, "No Application is Open.")
+        return redirect('create_institution')
     
     if request.method == 'POST':
         amount = request.POST["amount"]
@@ -2665,10 +2694,17 @@ def institution_profile(request, inst_name):
             messages.error(request, f"The {institution.first_name} already Awarded.")
             return redirect('create_institution')
         else:
+            inst_email = institution.email.split('@')[0]
+            if inst_email == 'secondary':
+
+                funding_for = "Secondary"
+            else:
+                funding_for = "Higher_Education"
+
             awarding = UploadedDocuments(
                 user=institution,
                 awarded= amount,
-                funds_for = 'Secondary',
+                funds_for = funding_for,
                 application_status = 'Disbursed',
                 application=current_application,
                 approved_by=request.user.first_name + " "+ request.user.last_name,
