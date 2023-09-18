@@ -19,7 +19,11 @@
                 {% for student, award in zipped_date%}
             <tr>
                 <th scope="row">{{ forloop.counter }}</th>
-                <td>{{student.fullname}}</td>
+                <td>
+                    <a href="{% url 'user_profile' student.user_id %}">
+                        {{student.fullname}}
+                    </a>
+                </td>
                 <td>{{student.gender}}</td>
                 <td>{{student.admin_no}}</td>
                 <td>{{award.awarded|intcomma}}</td>
