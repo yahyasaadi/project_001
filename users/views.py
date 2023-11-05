@@ -242,7 +242,7 @@ def family_background(request):
                 sibling_name=sibling_name,
                 institution= sibling_institution,
                 fees=sibling_fee
-,
+
             )
             saving_sibling.save()
         return redirect('additional_info')
@@ -322,7 +322,7 @@ def update_family_background(request):
                 sibling_name=sibling_name,
                 institution= sibling_institution,
                 fees=sibling_fee
-,
+
             )
             saving_sibling.save()
         print(updating)
@@ -1591,19 +1591,32 @@ def apply(request):
             return render(request, 'users/404.html',context)
         
 
-
+########
+######
+#######
+######
 @staff_member_required
 def generate_bursary_letter(request, user_id):
     user1 = get_object_or_404(User, pk=user_id)
-
+    
     personal_details = PersonalDetails.objects.get(user=user1)
     last_application = Application.objects.last()
     owner = OwnerDetails.objects.last()
     uploaded = UploadedDocuments.objects.filter(user=user1).first()
-
+    admin_no = personal_details.admin_no
     recipient_name = personal_details.fullname
     institution_name = personal_details.institution
+
     amount_awarded = uploaded.awarded
+    amount_award = int(amount_awarded)
+    total_awarded_in_words = num2words(amount_award)
+    total_awarded_in_words = total_awarded_in_words.title()
+    print(amount_award)
+    print(amount_awarded)
+    print(total_awarded_in_words)
+
+
+    
     course_name = personal_details.course
     Constituency_Name = owner.name
 
@@ -1612,14 +1625,11 @@ def generate_bursary_letter(request, user_id):
     current_date1= datetime.now().strftime("%Y-%m-%d, Time: %H:%M:%S") 
 
     UploadedDocuments.objects.filter(user=user1,application=last_application).update(
-        application_status = 'Disbursed',
+        application_status = 'Approved',
         letter_id = f"S_{institution_name}_FY_{last_application.id_for_reference}_dt_{current_date1}"
     )
 
-    if personal_details.gender == 'male':
-        pronoun = 'his'
-    else:
-        pronoun = 'her'
+    
 
     pdf = FPDF()
 
@@ -1679,36 +1689,69 @@ def generate_bursary_letter(request, user_id):
 
     pdf.set_font("Times", 'B', size=12)
 
-    pdf.multi_cell(0, 8, f"RE: Notification of Bursary Award for {recipient_name} of Admission/Registration No. {personal_details.admin_no} - {course_name}.")
+    
+    pdf.multi_cell(0, 6, f"RE: Bursary Allocation For FY {last_application.id_for_reference}.")
+    pdf.set_line_width(.5)
+    
+    # Define the starting X and Y coordinates for the line
+    x1 = 11  # 20px from the left margin
+    x2 = pdf.w - 120 # 20px from the right margin
+    y = pdf.get_y()  # Maintain the current Y position
+
+    # Draw a horizontal line by drawing a line
+    pdf.line(x1, y, x2, y)
+    pdf.set_line_width(0.5)
+
     pdf.ln(3)
     pdf.set_font("Times", size=12)
 
-    letter_content = (
-        f"I hope this letter finds you in good health. I am writing to inform you about a significant "
-        f"development regarding one of your esteemed students. It is with great pleasure that I convey the news "
-        f"that {recipient_name}, a student of {course_name} at {institution_name}, has been awarded a bursary of "
-        f"Kshs. {amount_awarded} under the {Constituency_Name}, Constituency Development Fund (CDF) scheme.\n\n"
-        f"The {Constituency_Name} CDF has recognized {recipient_name}'s dedication and commitment to {pronoun} "
-        f"education, as well as {pronoun} exceptional academic achievements. After a thorough evaluation process, "
-        f"{recipient_name} has been selected as a deserving recipient of this prestigious bursary.\n\n"
-        f"The bursary award aims to provide financial assistance to students who demonstrate exemplary academic "
-        f"performance and a strong commitment to their studies. It serves as a testament to {recipient_name}'s hard "
-        f"work, dedication, and potential to contribute positively to {pronoun} field of study and society as a whole.\n\n"
-        f"We kindly request your cooperation in notifying {recipient_name} about this significant achievement. We "
-        f"believe that your institution's recognition and support will further motivate {recipient_name} to excel "
-        f"academically and contribute to the institution's reputation.\n\n"
-        f"We look forward to {recipient_name}'s continued success and academic accomplishments. Once again, please "
-        f"accept our warm congratulations on this remarkable achievement.\n\n"
-        f"If you require any further information or documentation related to the bursary award, please do not "
-        f"hesitate to contact our office.\n\n"
-    )
+    pdf.set_font("Times", size=12)
+    # total_awarded_value = "{:,}".format(total_awarded_value)
+    # pdf.multi_cell(0,6,f'Enclosed herewith, please find Cheque no:........................... amounting to Kshs. {total_awarded_in_words} ({total_awarded_value}/=) only dated {current_date_formatted} in the benefit of the students listed below:-')
+    pdf.multi_cell(0,6,'Enclosed herewith, please find Cheque no:........................... amounting to Kshs. {a} ({t:,}/=) only dated {c} in the benefit of the student listed below:-'.format(a=total_awarded_in_words, c=current_date_formatted,t=amount_awarded))
+    pdf.ln(3)
 
-    pdf.multi_cell(0, 5, letter_content)
+    # Create a table header
+    pdf.set_fill_color(0, 191, 255)  # Light Blue
+    pdf.set_font("Arial", style='B', size=12)
+    pdf.cell(0,6, f"{institution_name}", ln=True, align="C")
+    pdf.set_font("Arial", style='B', size=8)
 
-    pdf.cell(0,6, "Thank you for your co-operation.")
+
+    pdf.cell(9, 10, "S/No.", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Name", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "Course", 1, 0, 'L', 1)
+    pdf.cell(35, 10, "Admission Number", 1, 0, 'L', 1)
+    pdf.cell(20, 10, "Amount", 1, 1, 'L', 1)
+
+    # Create a table with student details
+    pdf.set_fill_color(255, 255, 255)  # White
+    pdf.set_font("Arial", size=8)
+    s_no = 1
+    current_date1= datetime.now().strftime("%Y-%m-%d, Time: %H:%M:%S")
+
+    pdf.cell(9, 10, f"{s_no}", 1, 0, 'L', 1)
+    pdf.cell(60, 10, f"{recipient_name}", 1, 0, 'L', 1)
+    pdf.cell(60, 10, f"{course_name}", 1, 0, 'L', 1)
+    pdf.cell(35, 10, f"{admin_no}", 1, 0, 'L', 1)
+    pdf.cell(20, 10, f"{amount_awarded}", 1, 1, 'L', 1)
+
+    pdf.set_font("Arial", style='B', size=10)
+    
+    pdf.cell(9, 10, "", 1, 0, 'C', 1)
+    pdf.cell(60, 10, "TOTAL", 1, 0, 'L', 1)
+    pdf.cell(60, 10, "", 1, 0, 'L', 1)
+    pdf.cell(35, 10, "", 1, 0, 'C', 1)
+    pdf.cell(20, 10, "{:,}".format(amount_awarded), 1, 1, 'L', 1)
+    pdf.set_font("Arial", size=12)
+
     pdf.ln(10)
-    pdf.cell(0,6,"Yours's Faithfully,")
-    pdf.ln(15)
+    pdf.multi_cell(0,8,'Please acknowledge formally receipt of the above cheque and in case of any changes the CDF office has all the discretion to award any needy students.')
+    pdf.multi_cell(0,8,'N/B; The document is of high sensitive nature. Please note that it should remain confidential between our two offices. The document should not be shared with any third parties.')
+    pdf.cell(0,6, "Thank you for your attention to this matter.")
+    pdf.ln(20)
+    pdf.cell(0,6,"Yours Sincerely,")
+    pdf.ln(20)
     pdf.cell(0,6,f"{owner.name_of_the_chairperson},", ln=True)
    
     pdf.cell(0,6,"CDF Chairperson.", ln=True)
@@ -1899,7 +1942,7 @@ def approved_lst_pdf(request):
     pdf.cell(115, 10, "Conclusion Date", 1)
     pdf.cell(60, 10, f"{last_application.end_date}", 1,ln=True)
 
-##################Applicants####
+    ##############Applicants####
     pdf.cell(115, 10, "Total Number of Applicants", 1)
     pdf.cell(60, 10, f"{last_application.number_of_applicant}", 1,ln=True)
 
@@ -1907,10 +1950,10 @@ def approved_lst_pdf(request):
     pdf.cell(60, 10, f"{disbursed_count}", 1,ln=True)
 
 
-#############Approved sec
+    #############Approved sec
     pdf.cell(115, 10, "Number of Applicants Benefited in Secondary", 1)
     pdf.cell(60, 10, f"{disbursed_sec}", 1,ln=True)
-#############Approved shigh
+    #############Approved shigh
 
     pdf.cell(115, 10, "Number of Applicants Benefited in Higher Education", 1)
     pdf.cell(60, 10, f"{disbursed_high}", 1,ln=True)
@@ -1924,7 +1967,7 @@ def approved_lst_pdf(request):
     pdf.cell(60, 10, "Kshs. {:,}".format(last_application.funds_available_for_universities), 1,ln=True)
 
 
-##################distributed
+    ##################distributed
     dis_sec = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Secondary').aggregate(Sum('awarded'))['awarded__sum'] or 0
     dis_higher = UploadedDocuments.objects.filter(application_status='Disbursed', application=last_application,funds_for='Higher_Education').aggregate(Sum('awarded'))['awarded__sum'] or 0
 
@@ -1936,7 +1979,7 @@ def approved_lst_pdf(request):
     pdf.cell(60, 10, "Kshs. {:,}".format(dis_higher), 1,ln=True)
 
 
-##################remaining
+    ##################remaining
     remain_sec = last_application.funds_available_for_secondary_schools - dis_sec
     remain_higher = last_application.funds_available_for_universities - dis_higher
     pdf.cell(115, 10, "Remaining Funds for Secondary Schools", 1)
@@ -2079,6 +2122,7 @@ def approved_lst_pdf(request):
 
 @staff_member_required
 def forwarding_letter(request):
+
     current_application = Application.objects.last()
 
     # Get the user IDs of approved users in the current application
@@ -2454,6 +2498,15 @@ def reports(request):
     }
     return render(request, 'users/reports.html',context)
 
+
+
+
+####
+####
+####
+####
+####
+####
 @staff_member_required
 def forwarding_letter_institution(request, institution):
     current_application = Application.objects.last()
